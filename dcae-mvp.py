@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """DCAE Coding Agent - Simplified MVP
 
 A practical coding assistant for daily development tasks.
@@ -16,6 +17,7 @@ Usage:
 """
 
 import asyncio
+import io
 import json
 import os
 import sys
@@ -24,6 +26,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 from openai import AsyncOpenAI
+
+# Fix encoding for Windows
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 
 class DCAEConfig:
@@ -266,8 +273,9 @@ Requirements:
                         code_lines.append(line)
                     elif 'Requirements:' in line:
                         # Start of requirements
+                        in_requirements = True
                         continue
-                    elif in_code == False and code_lines and line.strip() and not line.startswith('---'):
+                    elif in_requirements:
                         if line.strip():
                             requirements.append(line.strip())
 
