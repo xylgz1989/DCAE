@@ -1,0 +1,45 @@
+name: 简单编码计划
+description: 使用 coding-plan 和 cost-aware 技能创建编码计划
+
+steps:
+  - agent: pm
+    skill: coding-plan
+    task: |
+      为用户登录功能创建详细的编码计划。
+
+      需求：
+      1. 用户可以使用用户名/密码或手机验证码登录
+      2. 密码需要加密存储
+      3. 登录成功后返回 JWT token
+      4. 支持 Token 刷新机制
+
+  - agent: architect
+    skill: cost-aware
+    task: |
+      优化技术方案的成本，为不同阶段选择合适的 LLM 模型。
+
+      当前资源约束：
+      - GLM 订阅：128k tokens / 天
+      - Qwen 订阅：200k tokens / 天
+
+  - agent: developer
+    skill: tdd
+    task: |
+      使用 TDD 流程实现登录功能，按照生成的计划执行。
+
+      执行原则：
+      1. 先写测试用例（RED）
+      2. 再写最少代码使测试通过（GREEN）
+      3. 最后重构代码（REFACTOR）
+      4. 每完成一个任务更新状态
+
+  - agent: developer
+    skill: code_review
+    task: |
+      对实现的登录功能进行代码审查。
+
+      审查重点：
+      1. 密码安全性（是否使用合适的加密方式）
+      2. Token 生成和验证逻辑
+      3. 错误处理是否完善
+      4. 是否有潜在的安全漏洞

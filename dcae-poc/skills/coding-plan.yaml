@@ -1,0 +1,90 @@
+name: coding-plan
+description: Create coding task plan, including task breakdown, prioritization, and
+  resource estimation
+prompts:
+  initial: '# Coding Plan - Task Breakdown and Planning
+
+
+    Create a detailed coding plan based on the requirements.
+
+
+    ## Planning Principles:
+
+    1. **Task Breakdown** - Break down large features into independently completable
+    small tasks
+
+    2. **Prioritization** - Identify critical paths and parallelizable tasks
+
+    3. **Dependencies** - Clarify task dependencies
+
+    4. **Resource Estimation** - Estimate effort and complexity for each task
+
+    5. **Risk Identification** - Identify potential technical risks and dependencies'
+  task_breakdown: '# Task Breakdown
+
+
+    Break down tasks according to the following structure:
+
+
+    ## Task List
+
+    ### Task 1: [Task Name]
+
+    - **Description**: [Brief description]
+
+    - **Priority**: P0/P1/P2
+
+    - **Estimated Time**: [Hours]
+
+    - **Dependencies**: [Predecessor tasks, or "None"]
+
+    - **Acceptance Criteria**: [Completion conditions]
+
+    - **Notes**: [Special case notes]'
+  prioritization: '# Prioritization
+
+
+    Sort by MoSCoW method:
+
+    - **Must have** - Core features, without which cannot go live
+
+    - **Should have** - Important but not critical
+
+    - **Could have** - Do if there is time
+
+    - **Won''t have** - Explicitly excluded'
+  resource_estimation: '# Resource Estimation
+
+
+    Estimate for each task:
+
+    - **Coding Time**: [Hours]
+
+    - **Testing Time**: [Hours]
+
+    - **Code Review Time**: [Hours]
+
+    - **Total Hours**: [Sum]
+
+    - **Complexity**: Low/Medium/High'
+  risk_analysis: '# Risk Analysis
+
+
+    Identify the following risks:
+
+    1. **Technical Risk** - Dependent technologies are unfamiliar or challenging
+
+    2. **Dependency Risk** - External libraries or APIs may be unstable
+
+    3. **Time Risk** - Estimates may be inaccurate
+
+    4. **Resource Risk** - LLM token or budget insufficient
+
+
+    Mitigation measures: [Specific response measures]'
+instructions:
+- Generate a complete task list, each task includes description, priority, estimated
+  time
+- Mark tasks that can be done in parallel
+- Consider LLM subscription plan cost constraints (such as token limits)
+- Provide alternative solutions for high-risk tasks

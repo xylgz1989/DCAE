@@ -1,0 +1,61 @@
+# DCAE POC Configuration File - Qwen Only
+
+project:
+  name: "DCAE POC (Qwen Only)"
+  description: "Configuration for using only Qwen LLMs"
+
+# LLM API Configuration - Qwen Only
+llm_config:
+  # 阿里通义 Qwen (Alibaba DashScope)
+  qwen:
+    api_key: "sk-2284c837ff0e4166a225e3b5e8ccbb47"
+    base_url: "https://dashscope.aliyuncs.com/api/v1"
+    model: "qwen-max"
+    # 可用模型: qwen-max, qwen-plus, qwen-turbo, qwen-long
+
+  # Qwen Coding Plan (编程专用模型)
+  qwen-coding:
+    api_key: "sk-2284c837ff0e4166a225e3b5e8ccbb47"
+    base_url: "https://dashscope.aliyuncs.com/api/v1"
+    model: "qwen-coder-plus"
+    # 可用模型: qwen-coder-plus, qwen-max, qwen-plus, qwen-turbo, qwen-long
+
+# BMAD Agents Configuration - Using Qwen Only
+agents:
+  developer:
+    name: "Developer"
+    role: "coding"
+    model: "qwen-coder-plus"
+    consensus:
+      enabled: false  # Disable consensus for testing
+    skills: ["coding-plan", "tdd", "code_review"]
+
+# Superpowers Skills Configuration
+skills:
+  coding-plan:
+    mandatory_for: ["coding"]
+    description: "Create coding task plan with task breakdown, prioritization, and resource estimation"
+
+  tdd:
+    mandatory_for: ["coding"]
+    description: "Force test-driven development (RED-GREEN-REFACTOR)"
+
+  code_review:
+    mandatory_for: ["coding"]
+    description: "Force code review to ensure code quality"
+
+# Storage Configuration
+storage:
+  type: "sqlite"
+  path: "./dcae-poc-qwen.db"
+
+# Consensus Configuration
+consensus:
+  timeout: 300
+  max_rounds: 3
+  parallel: true
+
+# Output Configuration
+output:
+  artifacts_dir: "./artifacts"
+  logs_dir: "./logs"

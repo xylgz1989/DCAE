@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__web-search-prime__webSearchPrime",
+      "mcp__zread__get_repo_structure",
+      "mcp__zread__read_file",
+      "Bash(poetry install:*)",
+      "Bash(python:*)",
+      "Bash(set PYTHONPATH=D:/software_dev_project/DCAE/dcae-poc/src:*)",
+      "Bash(PYTHONPATH=D:/software_dev_project/DCAE/dcae-poc/src python:*)",
+      "mcp__web-reader__webReader",
+      "Bash(poetry run dcae run:*)",
+      "Bash(PYTHONPATH=./src:$PYTHONPATH python -m dcae.cli run:*)",
+      "Bash(PYTHONPATH=. python -m dcae.cli run:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

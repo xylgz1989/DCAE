@@ -1,0 +1,98 @@
+# DCAE POC Configuration File
+
+project:
+  name: "DCAE POC"
+  description: "Simplified proof of concept for consensus-driven agentic development"
+
+# LLM API Configuration
+llm_config:
+  claude:
+    api_key: "${ANTHROPIC_API_KEY:-}"
+    base_url: "https://api.anthropic.com"
+    model: "claude-3-5-sonnet-20241022"
+  openai:
+    api_key: "${OPENAI_API_KEY:-}"
+    base_url: "https://api.openai.com/v1"
+    model: "gpt-4o"
+  glm:
+    api_key: "${GLM_API_KEY:-}"
+    base_url: "https://open.bigmodel.cn/api/paas/v4"
+    model: "glm-4"
+  qwen:
+    api_key: "${QWEN_API_KEY:-}"
+    base_url: "https://dashscope.aliyuncs.com/api/v1"
+    model: "qwen-max"
+
+# BMAD Agents Configuration
+agents:
+  pm:
+    name: "Product Manager"
+    role: "analysis"
+    model: "claude-3-5-sonnet-20241022"
+    consensus:
+      enabled: false
+    skills: []
+
+  architect:
+    name: "Architect"
+    role: "architecture"
+    model: "claude-3-5-sonnet-20241022"
+    consensus:
+      enabled: true
+      models:
+        - claude-3-5-sonnet-20241022
+        - gpt-4o
+      voting_strategy: "unanimous"
+      threshold: 1.0
+    skills: ["brainstorming"]
+
+  developer:
+    name: "Developer"
+    role: "coding"
+    model: "claude-3-5-sonnet-20241022"
+    consensus:
+      enabled: true
+      models:
+        - claude-3-5-sonnet-20241022
+        - gpt-4o-mini
+      voting_strategy: "majority"
+      threshold: 0.6
+    skills: ["tdd", "code_review"]
+
+# Superpowers Skills Configuration
+skills:
+  brainstorming:
+    mandatory_for: ["architect"]
+    description: "强制在架构设计前进行头脑风暴"
+
+  tdd:
+    mandatory_for: ["coding"]
+    description: "强制测试驱动开发 (RED-GREEN-REFACTOR)"
+
+  code_review:
+    mandatory_for: ["coding"]
+    description: "强制代码审查"
+
+  coding_plan:
+    mandatory_for: ["analysis", "pm"]
+    description: "创建详细的编码计划，包含任务拆分、成本估算和优先级排序"
+
+  cost_aware:
+    mandatory_for: ["analysis", "pm", "coding"]
+    description: "成本感知的决策优化，考虑 LLM 订阅套餐限制"
+
+# Storage Configuration
+storage:
+  type: "sqlite"
+  path: "./dcae-poc.db"
+
+# Consensus Configuration
+consensus:
+  timeout: 300  # seconds
+  max_rounds: 3
+  parallel: true
+
+# Output Configuration
+output:
+  artifacts_dir: "./artifacts"
+  logs_dir: "./logs"

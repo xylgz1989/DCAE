@@ -1,0 +1,19 @@
+name: Qwen Coding Test
+description: Test Qwen coding model without consensus
+
+steps:
+  - agent: developer
+    task: |
+      Please create a simple user authentication system with the following requirements:
+
+      1. User login with username/password
+      2. Password encryption using bcrypt
+      3. JWT token generation after successful login
+      4. Token refresh mechanism
+
+      Please provide the implementation code in Python using FastAPI.
+
+      Response format:
+      - First, provide the main application code
+      - Then provide the required dependencies (requirements.txt)
+      - Finally, provide a brief explanation of the implementation

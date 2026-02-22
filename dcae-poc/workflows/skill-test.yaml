@@ -1,0 +1,15 @@
+name: 技能测试工作流
+description: 测试新添加的 coding-plan 和 cost-aware 技能
+
+steps:
+  - agent: pm
+    skill: coding-plan
+    task: "为 '用户注册' 功能创建简单的编码计划。任务包括：1)用户模型设计 2)API 接口设计 3)数据库设计 4)前端页面开发"
+
+  - agent: architect
+    skill: cost-aware
+    task: "考虑 GLM 和 Qwen 的订阅套餐限制。为注册功能估算 token 使用量并选择合适的模型"
+
+  - agent: developer
+    skill: tdd
+    task: "为用户注册功能编写测试用例和实现代码"

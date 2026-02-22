@@ -1,0 +1,70 @@
+name: 用户登录功能开发
+description: 使用 DCAE 框架实现用户登录功能，包含需求分析、架构设计和代码实现
+
+steps:
+  - agent: pm
+    task: |
+      编写用户登录功能的需求文档。
+
+      需要包含：
+      1. 功能描述
+      2. 用户故事
+      3. 功能需求列表
+      4. 非功能需求（性能、安全等）
+      5. 验收标准
+
+  - agent: architect
+    skill: brainstorming
+    task: |
+      设计用户认证系统的架构方案。
+
+      需要考虑：
+      1. 认证方式（JWT、Session 等）
+      2. 密码存储策略
+      3. 安全措施（防止暴力破解、CSRF 等）
+      4. 前后端交互方式
+      5. 错误处理策略
+
+      请按照头脑风暴的格式输出多个方案，并给出推荐方案。
+
+  - agent: architect
+    task: |
+      根据上一步推荐的架构方案，输出详细的架构设计文档。
+
+      需要包含：
+      1. 系统架构图（用文字描述）
+      2. API 接口定义
+      3. 数据模型设计
+      4. 关键技术选型
+      5. 安全设计
+
+  - agent: developer
+    skill: tdd
+    task: |
+      实现用户登录 API，遵循 TDD 流程。
+
+      要求：
+      1. 首先编写失败的测试用例（RED）
+      2. 然后编写最少代码使测试通过（GREEN）
+      3. 最后重构代码（REFACTOR）
+
+      技术栈：
+      - 后端：Python + FastAPI
+      - 前端：React 或简化的 HTML/JS
+      - 数据库：SQLite（简化）
+
+      API 端点：
+      - POST /api/auth/login
+      - POST /api/auth/logout
+      - GET /api/auth/me
+
+  - agent: developer
+    skill: code_review
+    task: |
+      对刚才实现的用户登录代码进行审查。
+
+      重点检查：
+      1. 密码存储是否安全
+      2. JWT token 处理是否正确
+      3. 错误处理是否完善
+      4. 测试覆盖是否充分

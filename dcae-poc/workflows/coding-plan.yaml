@@ -1,0 +1,58 @@
+name: 编码计划工作流
+description: 创建详细的编码计划，包含任务拆分、成本估算和优先级排序
+
+steps:
+  - agent: pm
+    task: "分析需求，提取功能列表和验收标准"
+
+  - agent: architect
+    skill: brainstorming
+    task: "进行技术方案头脑风暴，识别可行架构选项"
+
+  - agent: architect
+    task: "创建技术架构设计，选择最优方案"
+
+  - agent: pm
+    skill: coding-plan
+    task: "创建详细的编码计划，包含："
+    context: |
+      计划要求：
+      1. 任务拆分 - 将功能拆分为独立的开发任务
+      2. 优先级排序 - 按重要性和依赖关系排序
+      3. 并行识别 - 标注可并行的任务
+      4. 资源估算 - 估计每个任务的工时
+      5. 风险分析 - 识别潜在技术风险
+      6. 验收标准 - 每个任务的完成条件
+
+  - agent: architect
+    skill: cost-aware
+    task: "优化成本，为不同阶段选择合适的 LLM 模型"
+    context: |
+      考虑 GLM 和 Qwen 的订阅套餐：
+      1. 需求分析阶段 - 使用 glm-3-turbo / qwen-turbo
+      2. 架构设计阶段 - 使用 qwen-max（需要强推理）
+      3. 代码实现阶段 - 使用 glm-4 / qwen-max
+      4. 代码审查阶段 - 使用 glm-4-flash / qwen-turbo
+      5. Token 预算 - 为整个工作流分配 token 预算
+
+  - agent: developer
+    skill: cost-aware
+    task: "执行编码计划，按照优先级实现任务"
+    context: |
+      执行原则：
+      1. 先实现 P0 任务（关键路径）
+      2. 使用共识验证关键代码（glm-4 + qwen-max）
+      3. 遵循 TDD 流程
+      4. 记录实际的 token 使用量用于成本追踪
+      5. 如遇风险任务，及时上报
+
+  - agent: developer
+    skill: code_review
+    task: "代码审查，验证实现质量和成本控制"
+    context: |
+      审查重点：
+      1. 代码质量检查
+      2. 性能影响评估
+      3. 安全漏洞扫描
+      4. Token 使用效率评估
+      5. 与计划的偏差分析

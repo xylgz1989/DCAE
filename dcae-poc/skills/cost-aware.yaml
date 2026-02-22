@@ -1,0 +1,75 @@
+name: cost-aware
+description: Cost-aware decision optimization, considering LLM subscription plan limitations
+prompts:
+  initial: '# Cost-Aware Decision Making
+
+
+    Consider LLM subscription plan cost constraints when making technical decisions:
+
+
+    ## Subscription Plan Info
+
+    - GLM: [Check current plan and balance]
+
+    - Qwen: [Check current plan and balance]
+
+
+    ## Cost Optimization Strategies
+
+    1. **Task-Model Matching** - Use lightweight models for simple tasks, powerful
+    models for complex tasks
+
+    2. **Batch Processing** - Merge related tasks to reduce context rebuilding costs
+
+    3. **Cache Reuse** - Reuse existing context and outputs
+
+    4. **Progressive Validation** - Quickly verify with low-cost models, then refine
+    with high-cost models'
+  model_selection: '# Model Selection Strategy
+
+
+    Select models based on task type:
+
+
+    | Task Type | Recommended Model | Reason |
+
+    |-----------|-------------------|--------|
+
+    | Requirement Analysis | glm-3-turbo / qwen-turbo | Fast response, low cost |
+
+    | Code Generation | glm-4 / qwen-max | Guarantee code quality |
+
+    | Code Review | glm-4-flash / qwen-turbo | Quick review, high cost-performance
+    |
+
+    | Architecture Design | qwen-max | Strong reasoning ability |
+
+    | Test Generation | glm-4-flash / qwen-turbo | Batch generation |'
+  cost_estimation: '# Cost Estimation
+
+
+    Estimate costs for each task:
+
+    - **Input Tokens**: Estimate prompt length
+
+    - **Output Tokens**: Expected response length
+
+    - **Request Count**: Expected call count
+
+    - **Total Tokens**: [Input+Output] × Count
+
+    - **Estimated Cost**: Calculate based on subscription plan pricing
+
+
+    Optimization suggestions: [Optimization suggestions if cost is too high]'
+  token_budgeting: "# Token Budget Management\n\nSet token budget for current plan:\n\
+    - **Total Budget**: [Total token limit]\n- **Task Allocation**:\n  - Requirement\
+    \ Analysis: [Token count]\n  - Code Implementation: [Token count]\n  - Code Review:\
+    \ [Token count]\n- **Monitoring Mechanism**: Strategy when exceeding budget\n\
+    - **Priority Adjustment**: If necessary, reduce model quality for non-critical\
+    \ tasks"
+instructions:
+- Consider task complexity and cost when selecting models
+- Allocate appropriate models for each phase (requirement, development, review)
+- Mark estimated token usage when generating plans
+- Provide cost optimization suggestions

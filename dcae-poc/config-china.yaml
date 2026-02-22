@@ -1,0 +1,106 @@
+# DCAE POC Configuration File - China LLMs Version
+
+project:
+  name: "DCAE POC (China LLMs)"
+  description: "Configuration for using GLM and Qwen LLMs"
+
+# LLM API Configuration - China Providers
+llm_config:
+  # 智谱 GLM (Zhipu AI)
+  glm:
+    api_key: "${GLM_API_KEY:-}"
+    base_url: "https://open.bigmodel.cn/api/paas/v4"
+    model: "glm-4"
+    # 其他可选模型: glm-4-flash, glm-4-air, glm-3-turbo
+
+  # 阿里通义 Qwen (Alibaba DashScope)
+  qwen:
+    api_key: "sk-2284c837ff0e4166a225e3b5e8ccbb47"
+    base_url: "https://dashscope.aliyuncs.com/api/v1"
+    model: "qwen-max"
+    # 可用模型: qwen-max, qwen-plus, qwen-turbo, qwen-long
+
+  # Qwen Coding Plan (编程专用模型)
+  qwen-coding:
+    api_key: "sk-2284c837ff0e4166a225e3b5e8ccbb47"
+    base_url: "https://dashscope.aliyuncs.com/api/v1"
+    model: "qwen-coder-plus"
+    # 可用模型: qwen-coder-plus, qwen-max, qwen-plus, qwen-turbo, qwen-long
+
+  # OpenAI (备用)
+  openai:
+    api_key: "${OPENAI_API_KEY:-}"
+    base_url: "https://api.openai.com/v1"
+    model: "gpt-4o"
+
+  # Claude (备用)
+  claude:
+    api_key: "${ANTHROPIC_API_KEY:-}"
+    base_url: "https://api.anthropic.com"
+    model: "claude-3-5-sonnet-20241022"
+
+# BMAD Agents Configuration - Using China LLMs
+agents:
+  pm:
+    name: "Product Manager"
+    role: "analysis"
+    model: "glm-4"
+    consensus:
+      enabled: false
+    skills: []
+
+  architect:
+    name: "Architect"
+    role: "architecture"
+    model: "glm-4"
+    consensus:
+      enabled: true
+      models:
+        - glm-4
+        - qwen-max
+      voting_strategy: "majority"
+      threshold: 0.6
+    skills: ["brainstorming"]
+
+  developer:
+    name: "Developer"
+    role: "coding"
+    model: "qwen-coder-plus"
+    consensus:
+      enabled: true
+      models:
+        - glm-4-flash
+        - qwen-turbo
+      voting_strategy: "majority"
+      threshold: 0.6
+    skills: ["tdd", "code_review", "coding-plan"]
+
+# Superpowers Skills Configuration
+skills:
+  brainstorming:
+    mandatory_for: ["architect", "analysis"]
+    description: "强制在架构设计前进行头脑风暴，生成多样化的解决方案"
+
+  tdd:
+    mandatory_for: ["coding"]
+    description: "强制测试驱动开发 (RED-GREEN-REFACTOR)"
+
+  code_review:
+    mandatory_for: ["coding"]
+    description: "强制代码审查，确保代码质量"
+
+# Storage Configuration
+storage:
+  type: "sqlite"
+  path: "./dcae-poc-china.db"
+
+# Consensus Configuration
+consensus:
+  timeout: 300
+  max_rounds: 3
+  parallel: true
+
+# Output Configuration
+output:
+  artifacts_dir: "./artifacts"
+  logs_dir: "./logs"
