@@ -1222,7 +1222,7 @@ class ConversationHistory:
         while len(self.history) > self.max_messages:
             self.history.pop(0)
 
-        # Trim by token count (rough estimation: 1 token ~ 4 chars)
+        # Trim by token count (better estimation: 1 token ~ 4 chars, but accounting for common English words)
         total_chars = sum(len(msg["content"]) for msg in self.history)
         while total_chars // 4 > self.max_tokens and len(self.history) > 2:
             removed = self.history.pop(0)
@@ -1265,11 +1265,28 @@ class CommandCompleter:
         if any(prefix.startswith(cmd) for cmd in ['review', 'test-doc', 'test-case', 'debug']):
             # Get Python files in current directory
             try:
+                # Get the part of the prefix after the command to match against filenames
+                prefix_parts = prefix.split()
+                if len(prefix_parts) > 1:
+                    filename_prefix = prefix_parts[-1]
+                else:
+                    filename_prefix = ""
+
                 python_files = [
                     f.name for f in current_dir.glob("*.py")
-                    if f.name.startswith(prefix.split()[-1])
+                    if f.name.lower().startswith(filename_prefix.lower())
                 ]
                 completions.extend(python_files)
+
+                # Also include other common file types
+                all_common_extensions = ['*.js', '*.ts', '*.jsx', '*.tsx', '*.java', '*.cpp', '*.c', '*.html', '*.css', '*.txt', '*.json', '*.yaml', '*.yml', '*.md']
+                for ext_pattern in all_common_extensions:
+                    common_files = [
+                        f.name for f in current_dir.glob(ext_pattern)
+                        if f.name.lower().startswith(filename_prefix.lower())
+                    ]
+                    completions.extend(common_files)
+
             except Exception:
                 pass
 
@@ -1314,6 +1331,10 @@ class ProgressDisplay:
             eta = f"{int(eta_seconds)}s"
 
         return f"\r{bar} {percent:.0f}% ETA: {eta}"
+
+    def finish(self):
+        """Complete the progress."""
+        self.current = self.total
 
 
 async def run_interactive_mode():
@@ -1388,11 +1409,11 @@ async def run_interactive_mode():
 
                 continue
 
-            # Parse command and arguments
+            # Parse command and arguments more robustly
             parts = user_input.split()
-            command = parts[0] if parts else None
+            command = parts[0].lower() if parts else None  # Normalize command to lowercase
             args = parts[1:] if len(parts) > 1 else []
-            full_prompt = ' '.join(args) if args else user_input[len(command):].strip()
+            full_prompt = ' '.join(args) if args else user_input[len(command or ''):].strip()
 
             # Handle different commands
             if command == 'gen':
@@ -1511,19 +1532,23 @@ async def handle_gen_command(agent: DCAEAgent, history: ConversationHistory, pro
     # Show progress (v3)
     print("Generating code...")
 
-    # Generate code
-    result = await agent.generate_code(prompt)
+    try:
+        # Generate code
+        result = await agent.generate_code(prompt)
 
-    # Add assistant response to history
-    history.add_assistant_message(result)
+        # Add assistant response to history
+        history.add_assistant_message(result)
 
-    print()
-    print("=" * 60)
-    print("Generated Code:")
-    print("=" * 60)
-    print()
-    print(result)
-    print()
+        print()
+        print("=" * 60)
+        print("Generated Code:")
+        print("=" * 60)
+        print()
+        print(result)
+        print()
+    except Exception as e:
+        print(f"Error during code generation: {str(e)}")
+        history.add_assistant_message(f"Error: {str(e)}")
 
     # Show budget status
     show_budget_after_command(agent)
@@ -1537,23 +1562,34 @@ async def handle_review_command(agent: DCAEAgent, history: ConversationHistory, 
 
     history.add_user_message(f"Review code: {file_path}")
 
-    path = Path(file_path)
+    # Expand relative path to absolute
+    path = Path(file_path).resolve()
+
+    # Check if file exists in current directory or expand path
     if not path.exists():
-        print(f"File not found: {file_path}")
-        return
+        # Try with the original path in case it was a relative path
+        original_path = Path(file_path)
+        if original_path.exists():
+            path = original_path
+        else:
+            print(f"File not found: {file_path}")
+            return
 
     print("Reviewing code...")
+    try:
+        result = await agent.review_code(path)
+        history.add_assistant_message(result)
 
-    result = await agent.review_code(path)
-    history.add_assistant_message(result)
-
-    print()
-    print("=" * 60)
-    print("Code Review:")
-    print("=" * 60)
-    print()
-    print(result)
-    print()
+        print()
+        print("=" * 60)
+        print("Code Review:")
+        print("=" * 60)
+        print()
+        print(result)
+        print()
+    except Exception as e:
+        print(f"Error during code review: {str(e)}")
+        history.add_assistant_message(f"Error: {str(e)}")
 
     show_budget_after_command(agent)
 
@@ -1567,17 +1603,20 @@ async def handle_debug_command(agent: DCAEAgent, history: ConversationHistory, e
     history.add_user_message(f"Debug: {error_msg}")
 
     print("Analyzing issue...")
+    try:
+        result = await agent.debug_issue(error_msg)
+        history.add_assistant_message(result)
 
-    result = await agent.debug_issue(error_msg)
-    history.add_assistant_message(result)
-
-    print()
-    print("=" * 60)
-    print("Debug Analysis:")
-    print("=" * 60)
-    print()
-    print(result)
-    print()
+        print()
+        print("=" * 60)
+        print("Debug Analysis:")
+        print("=" * 60)
+        print()
+        print(result)
+        print()
+    except Exception as e:
+        print(f"Error during debug analysis: {str(e)}")
+        history.add_assistant_message(f"Error: {str(e)}")
 
     show_budget_after_command(agent)
 
@@ -1591,17 +1630,20 @@ async def handle_req_command(agent: DCAEAgent, history: ConversationHistory, pro
     history.add_user_message(f"Requirements: {prompt}")
 
     print("Generating requirement document...")
+    try:
+        result = await agent.generate_requirement(prompt)
+        history.add_assistant_message(result)
 
-    result = await agent.generate_requirement(prompt)
-    history.add_assistant_message(result)
-
-    print()
-    print("=" * 60)
-    print("Requirement Document:")
-    print("=" * 60)
-    print()
-    print(result)
-    print()
+        print()
+        print("=" * 60)
+        print("Requirement Document:")
+        print("=" * 60)
+        print()
+        print(result)
+        print()
+    except Exception as e:
+        print(f"Error during requirement generation: {str(e)}")
+        history.add_assistant_message(f"Error: {str(e)}")
 
     show_budget_after_command(agent)
 
@@ -1614,23 +1656,34 @@ async def handle_test_doc_command(agent: DCAEAgent, history: ConversationHistory
 
     history.add_user_message(f"Test documentation: {file_path}")
 
-    path = Path(file_path)
+    # Expand relative path to absolute
+    path = Path(file_path).resolve()
+
+    # Check if file exists in current directory or expand path
     if not path.exists():
-        print(f"File not found: {file_path}")
-        return
+        # Try with the original path in case it was a relative path
+        original_path = Path(file_path)
+        if original_path.exists():
+            path = original_path
+        else:
+            print(f"File not found: {file_path}")
+            return
 
     print("Generating test documentation...")
+    try:
+        result = await agent.generate_test_documentation(path)
+        history.add_assistant_message(result)
 
-    result = await agent.generate_test_documentation(path)
-    history.add_assistant_message(result)
-
-    print()
-    print("=" * 60)
-    print("Test Documentation:")
-    print("=" * 60)
-    print()
-    print(result)
-    print()
+        print()
+        print("=" * 60)
+        print("Test Documentation:")
+        print("=" * 60)
+        print()
+        print(result)
+        print()
+    except Exception as e:
+        print(f"Error during test documentation generation: {str(e)}")
+        history.add_assistant_message(f"Error: {str(e)}")
 
     show_budget_after_command(agent)
 
@@ -1643,20 +1696,31 @@ async def handle_test_case_command(agent: DCAEAgent, history: ConversationHistor
 
     history.add_user_message(f"Test cases: {file_path}")
 
-    path = Path(file_path)
+    # Expand relative path to absolute
+    path = Path(file_path).resolve()
+
+    # Check if file exists in current directory or expand path
     if not path.exists():
-        print(f"File not found: {file_path}")
-        return
+        # Try with the original path in case it was a relative path
+        original_path = Path(file_path)
+        if original_path.exists():
+            path = original_path
+        else:
+            print(f"File not found: {file_path}")
+            return
 
     print("Generating test cases...")
+    try:
+        result = await agent.generate_test_cases(path)
+        history.add_assistant_message(result)
 
-    result = await agent.generate_test_cases(path)
-    history.add_assistant_message(result)
-
-    print()
-    print("=" * 60)
-    print("Test Cases Generated")
-    print("=" * 60)
+        print()
+        print("=" * 60)
+        print("Test Cases Generated")
+        print("=" * 60)
+    except Exception as e:
+        print(f"Error during test case generation: {str(e)}")
+        history.add_assistant_message(f"Error: {str(e)}")
 
     show_budget_after_command(agent)
 
@@ -1667,17 +1731,20 @@ async def handle_general_prompt(agent: DCAEAgent, history: ConversationHistory, 
 
     # Use code generation as default for general prompts
     print("Processing...")
+    try:
+        result = await agent.generate_code(prompt)
+        history.add_assistant_message(result)
 
-    result = await agent.generate_code(prompt)
-    history.add_assistant_message(result)
-
-    print()
-    print("=" * 60)
-    print("Response:")
-    print("=" * 60)
-    print()
-    print(result)
-    print()
+        print()
+        print("=" * 60)
+        print("Response:")
+        print("=" * 60)
+        print()
+        print(result)
+        print()
+    except Exception as e:
+        print(f"Error during processing: {str(e)}")
+        history.add_assistant_message(f"Error: {str(e)}")
 
     show_budget_after_command(agent)
 
