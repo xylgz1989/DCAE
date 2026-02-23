@@ -1,0 +1,143 @@
+# generated: 2026-02-23
+# project: DCAE
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: {implementation_artifacts}
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-02-23
+project: DCAE
+project_key: NOKEY
+tracking_system: file-system
+story_location: {implementation_artifacts}
+
+development_status:
+  # Epic 1: Project Setup & Management
+  epic-1: in-progress
+  1-1-project-initialization: done
+  1-2-project-configuration: backlog
+  1-3-start-bmad-workflow: backlog
+  1-4-pause-resume-project: backlog
+  1-5-manage-multiple-projects: backlog
+  1-6-global-settings-config: backlog
+  1-7-api-key-management: backlog
+  1-8-performance-statistics: backlog
+  1-9-update-settings: backlog
+  1-10-log-error-reporting: backlog
+  1-11-progress-indicators: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Requirements Analysis & Planning
+  epic-2: in-progress
+  2-1-input-edit-requirements: done
+  2-2-generate-preliminary-req-docs: done
+  2-3-review-modify-req-docs: done
+  2-4-identify-conflicts-issues: backlog
+  2-5-export-share-requirements: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Architecture Design & Planning
+  epic-3: backlog
+  3-1-generate-architecture-solutions: backlog
+  3-2-review-modify-architecture: backlog
+  3-3-architecture-best-practices: backlog
+  3-4-add-modify-components: backlog
+  3-5-validate-architecture: backlog
+  3-6-core-bmad-workflow-impl: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Code Generation & Development
+  epic-4: backlog
+  4-1-generate-code-structure: backlog
+  4-2-generate-basic-framework-code: backlog
+  4-3-generate-business-logic: backlog
+  4-4-specify-language-tech-stack: backlog
+  4-5-generate-framework-compliant-code: backlog
+  4-6-ide-plugin-functionality: backlog
+  4-7-generate-ide-formatted-code: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Review & Quality Assurance
+  epic-5: backlog
+  5-1-pause-request-user-review: backlog
+  5-2-review-generated-output: backlog
+  5-3-submit-modification-suggestions: backlog
+  5-4-identify-code-issues: backlog
+  5-5-set-review-rules-checkpoints: backlog
+  5-6-review-mechanism-impl: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: LLM Management & Integration
+  epic-6: backlog
+  6-1-configure-multiple-llm-providers: backlog
+  6-2-intelligent-llm-selection: backlog
+  6-3-manual-llm-specification: backlog
+  6-4-compare-verify-across-llms: backlog
+  6-5-manage-llm-usage-stats: backlog
+  6-6-claude-code-mcp-integration: backlog
+  6-7-ide-plugin-integration: backlog
+  6-8-integrate-version-control: backlog
+  6-9-integrate-package-managers: backlog
+  6-10-mcp-integration-impl: backlog
+  6-11-basic-llm-management: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: Discipline Control & Methodology Enforcement
+  epic-7: backlog
+  7-1-set-discipline-level: backlog
+  7-2-adjust-validation-strictness: backlog
+  7-3-adjust-discipline-settings: backlog
+  7-4-enforce-development-processes: backlog
+  7-5-track-discipline-compliance: backlog
+  7-6-adjustable-discipline-impl: backlog
+  epic-7-retrospective: optional
+
+  # Epic 8: Testing & Documentation Generation
+  epic-8: backlog
+  8-1-generate-test-cases: backlog
+  8-2-review-modify-test-cases: backlog
+  8-3-generate-test-types: backlog
+  8-4-specify-test-framework: backlog
+  8-5-provide-test-coverage: backlog
+  8-6-cli-interface-functionality: backlog
+  8-7-graphical-interface-view: backlog
+  8-8-clear-prompts-user-input: backlog
+  8-9-manage-parallel-tasks: backlog
+  epic-8-retrospective: optional
+
+  # Epic 9: Knowledge Fusion & Cross-Domain Intelligence
+  epic-9: backlog
+  9-1-fuse-dev-product-knowledge: backlog
+  9-2-input-domain-specific-knowledge: backlog
+  9-3-provide-cross-domain-recommendations: backlog
+  9-4-reflect-best-practices: backlog
+  9-5-learn-project-specific-constraints: backlog
+  epic-9-retrospective: optional
