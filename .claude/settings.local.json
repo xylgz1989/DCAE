@@ -28,7 +28,9 @@
       "Bash(findstr:*)",
       "Bash(powershell \"Get-ChildItem -Path ''D:\\\\software_dev_project\\\\DCAE\\\\_bmad-output\\\\planning-artifacts'' -Recurse | Where-Object {$_Name -like ''*architecture*''}\")",
       "Bash(pip install:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git remote add:*)",
+      "Bash(git remote remove:*)"
     ]
   }
 }

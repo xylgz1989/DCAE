@@ -56,23 +56,23 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2: Requirements Analysis & Planning
-  epic-2: in-progress
+  epic-2: done
   2-1-input-edit-requirements: done
   2-2-generate-preliminary-req-docs: done
   2-3-review-modify-req-docs: done
   2-4-identify-conflicts-issues: backlog
   2-5-export-share-requirements: backlog
-  epic-2-retrospective: optional
+  epic-2-retrospective: done
 
   # Epic 3: Architecture Design & Planning
-  epic-3: backlog
-  3-1-generate-architecture-solutions: backlog
-  3-2-review-modify-architecture: backlog
-  3-3-architecture-best-practices: backlog
-  3-4-add-modify-components: backlog
-  3-5-validate-architecture: backlog
-  3-6-core-bmad-workflow-impl: backlog
-  epic-3-retrospective: optional
+  epic-3: done
+  3-1-generate-architecture-solutions: done
+  3-2-review-modify-architecture: done
+  3-3-architecture-best-practices: done
+  3-4-add-modify-components: done
+  3-5-validate-architecture: done
+  3-6-core-bmad-workflow-impl: done
+  epic-3-retrospective: done
 
   # Epic 4: Code Generation & Development
   epic-4: backlog
