@@ -1,0 +1,202 @@
+Metadata-Version: 2.4
+Name: dcae-framework
+Version: 1.0.0
+Summary: Disciplined Consensus-Driven Agentic Engineering Framework
+Home-page: https://github.com/dcae/dcae-framework
+Author: DCAE Development Team
+Author-email: DCAE Development Team <dcae@example.com>
+License: MIT
+Project-URL: Homepage, https://github.com/dcae/dcae-framework
+Project-URL: Bug Reports, https://github.com/dcae/dcae-framework/issues
+Project-URL: Source, https://github.com/dcae/dcae-framework/
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: openai>=1.0.0
+Requires-Dist: anthropic>=0.5.0
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: pydantic>=2.0.0
+Requires-Dist: click>=8.0.0
+Requires-Dist: aiohttp>=3.8.0
+Requires-Dist: pytest>=7.0.0
+Requires-Dist: pytest-asyncio>=0.21.0
+Requires-Dist: jinja2>=3.1.0
+Provides-Extra: dev
+Requires-Dist: black; extra == "dev"
+Requires-Dist: flake8; extra == "dev"
+Requires-Dist: mypy; extra == "dev"
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-cov; extra == "dev"
+Provides-Extra: docs
+Requires-Dist: sphinx; extra == "docs"
+Requires-Dist: sphinx-rtd-theme; extra == "docs"
+Dynamic: author
+Dynamic: home-page
+Dynamic: requires-python
+
+# DCAE - Distributed Coding Agent Environment
+
+DCAE is a practical coding assistant for daily development tasks focusing on code generation, review, and bug fixing. This project implements an interactive mode with enhanced functionality following Test-Driven Development principles.
+
+## Features
+
+- **Code Generation**: Generate code from natural language prompts
+- **Code Review**: Analyze and suggest improvements to existing code
+- **Debugging**: Help identify and solve coding issues
+- **Requirements Generation**: Create detailed requirement documents
+- **Test Documentation**: Generate comprehensive test documentation
+- **Test Cases**: Generate executable test cases
+- **Interactive Mode**: Enhanced interactive session with context tracking
+
+## Enhanced Interactive Mode Features
+
+The interactive mode has been significantly enhanced with:
+
+- **Advanced Command Completion**: Support for multiple file types (Python, JavaScript, TypeScript, Java, C++, JSON, YAML, etc.)
+- **Conversation History**: Maintain context across interactions with token-aware trimming
+- **Progress Indicators**: Visual feedback for long-running operations
+- **Robust Error Handling**: Graceful error recovery and fallbacks
+- **Budget Tracking**: Monitor API usage with configurable limits
+- **Command Normalization**: Case-insensitive command recognition
+- **File Path Resolution**: Support for both relative and absolute paths
+
+## Installation and Setup
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd DCAE
+   ```
+
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Initialize DCAE:
+   ```bash
+   python dcae.py init
+   ```
+
+   This will guide you through the configuration process, including selecting an LLM provider and setting budget limits.
+
+## Usage
+
+### Command Line Interface
+
+DCAE supports both command-line and interactive modes:
+
+**Command Line Mode:**
+```bash
+# Generate code
+python dcae.py gen "Create a function to calculate Fibonacci numbers"
+
+# Review code
+python dcae.py review path/to/file.py
+
+# Debug an issue
+python dcae.py debug "IndexError: list index out of range" --context path/to/file.py
+
+# Generate requirements
+python dcae.py req "User authentication system"
+
+# Generate test documentation
+python dcae.py test-doc path/to/file.py
+
+# Generate test cases
+python dcae.py test-case path/to/file.py
+
+# Check status
+python dcae.py status
+```
+
+**Interactive Mode:**
+```bash
+python dcae.py
+```
+
+This starts an interactive session where you can enter commands without the `python dcae.py` prefix:
+
+```
+dcae> gen write a bubble sort function
+dcae> review main.py
+dcae> debug "TypeError: unsupported operand type(s)"
+dcae> /help
+dcae> /exit
+```
+
+### Interactive Mode Commands
+
+**Code Generation:**
+- `gen <prompt>` - Generate code
+- `gen <prompt> -o file` - Generate code to file
+
+**Code Review:**
+- `review <file>` - Review code file
+
+**Debugging:**
+- `debug <error>` - Debug an issue
+- `debug <error> -c file` - Debug with context file
+
+**Documentation:**
+- `req <prompt>` - Generate requirements
+- `test-doc <file>` - Generate test documentation
+- `test-case <file>` - Generate test cases
+
+**Internal Commands:**
+- `/status` - Show status
+- `/clear` - Clear conversation history
+- `/history` - Show conversation history
+- `/help` - Show help
+- `/exit` - Exit interactive mode
+
+## Configuration
+
+The configuration wizard (`python dcae.py init`) will create a config file in your home directory (`~/.dcae/config.json`) with:
+
+- Selected LLM provider (Qwen, GLM, OpenAI, etc.)
+- API key
+- Daily/monthly usage limits
+- Model preference settings
+- Fallback model for budget management
+
+## Budget Management
+
+DCAE includes built-in budget tracking to help manage API costs:
+
+- Configurable daily and monthly limits
+- Token-based or monetary-based tracking
+- Warning when approaching limits (80% threshold)
+- Automatic model fallback when budgets are tight
+
+## Supported Models
+
+The system supports various models based on your provider:
+
+- Qwen series (Turbo, Plus, Coder Plus, Max)
+- GLM-4
+- GPT-4o
+- Claude 3.5 Sonnet
+
+Model selection is automated based on task complexity and budget constraints.
+
+## Development
+
+The interactive mode was developed using Test-Driven Development with comprehensive test coverage in the `tests/` directory.
+
+To run tests:
+```bash
+python -m pytest tests/ -v
+```
+
+## License
+
+This project is licensed under the MIT License.
