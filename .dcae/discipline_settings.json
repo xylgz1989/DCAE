@@ -1,0 +1,172 @@
+{
+  "current_level": "strict",
+  "settings": {
+    "validation_level": 8,
+    "review_frequency": 8,
+    "testing_requirement": "strict",
+    "documentation_requirement": "strict",
+    "approval_required": true,
+    "automated_checks": [
+      "syntax_check",
+      "style_check",
+      "security_scan",
+      "dependency_check"
+    ],
+    "time_limits": {
+      "code_generation": 30,
+      "review": 20
+    }
+  },
+  "history": [
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T22:47:08.260919",
+      "reason": ""
+    },
+    {
+      "level": "fast",
+      "timestamp": "2026-02-23T22:47:08.264372",
+      "reason": ""
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T22:47:08.264761",
+      "reason": ""
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T22:47:08.269917",
+      "reason": ""
+    },
+    {
+      "level": "balanced",
+      "timestamp": "2026-02-23T22:47:08.277438",
+      "reason": ""
+    },
+    {
+      "level": "fast",
+      "timestamp": "2026-02-23T22:47:08.279707",
+      "reason": ""
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T22:47:08.282837",
+      "reason": ""
+    },
+    {
+      "level": "fast",
+      "timestamp": "2026-02-23T22:58:07.718753",
+      "reason": "Speeding up for prototype"
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T22:58:07.719435",
+      "reason": "Securing for production"
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T22:58:07.729052",
+      "reason": ""
+    },
+    {
+      "level": "fast",
+      "timestamp": "2026-02-23T22:58:07.729645",
+      "reason": ""
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T22:58:07.731924",
+      "reason": ""
+    },
+    {
+      "level": "balanced",
+      "timestamp": "2026-02-23T22:58:07.734642",
+      "reason": ""
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T22:58:07.736677",
+      "reason": "Starting production phase"
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T22:58:07.741893",
+      "reason": ""
+    },
+    {
+      "level": "fast",
+      "timestamp": "2026-02-23T22:59:55.740029",
+      "reason": "Speeding up for prototype"
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T22:59:55.740607",
+      "reason": "Securing for production"
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T22:59:55.742571",
+      "reason": ""
+    },
+    {
+      "level": "fast",
+      "timestamp": "2026-02-23T22:59:55.743217",
+      "reason": ""
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T22:59:55.747719",
+      "reason": ""
+    },
+    {
+      "level": "balanced",
+      "timestamp": "2026-02-23T22:59:55.749932",
+      "reason": ""
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T22:59:55.752044",
+      "reason": "Starting production phase"
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T22:59:55.754689",
+      "reason": ""
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T23:01:09.377336",
+      "reason": ""
+    },
+    {
+      "level": "fast",
+      "timestamp": "2026-02-23T23:01:09.388918",
+      "reason": ""
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T23:01:09.389600",
+      "reason": ""
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T23:01:09.396055",
+      "reason": ""
+    },
+    {
+      "level": "balanced",
+      "timestamp": "2026-02-23T23:01:09.400216",
+      "reason": ""
+    },
+    {
+      "level": "fast",
+      "timestamp": "2026-02-23T23:01:09.401962",
+      "reason": ""
+    },
+    {
+      "level": "strict",
+      "timestamp": "2026-02-23T23:01:09.403606",
+      "reason": ""
+    }
+  ]
+}

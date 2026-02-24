@@ -1,0 +1,15 @@
+integration_settings:
+  external_tools:
+    package_managers:
+    - pip
+    - npm
+    version_control: true
+  supported_llm_providers: []
+project_metadata:
+  description: ''
+  name: test_req_project
+  version: 0.1.0
+workflow_settings:
+  active_discipline: balanced
+  enable_consensus_validation: false
+  enable_methodology_enforcement: true

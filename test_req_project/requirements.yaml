@@ -1,0 +1,15 @@
+acceptance_criteria: []
+assumptions: []
+constraints: []
+description: Initial requirements for Test Project
+functional_requirements:
+- description: The system shall allow users to login with username and password
+  id: FR001
+  priority: high
+metadata:
+  authors: []
+  created_date: '2026-02-23T14:33:01.595933'
+  last_modified: '2026-02-23T14:33:21.880666'
+  version: '1.0'
+non_functional_requirements: []
+project_name: Test Project

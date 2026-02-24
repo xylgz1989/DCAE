@@ -30,7 +30,10 @@
       "Bash(pip install:*)",
       "Bash(find:*)",
       "Bash(git remote add:*)",
-      "Bash(git remote remove:*)"
+      "Bash(git remote remove:*)",
+      "Bash(powershell -Command \"Get-Content ''D:/software_dev_project/DCAE/src/dcae/business_logic_generator.py'' -TotalCount 780 | Select-Object -Last 20\")",
+      "Bash(powershell -Command \"Get-Content D:\\\\software_dev_project\\\\DCAE\\\\src\\\\dcae\\\\testing_documentation\\\\test_reviewer.py | Select-Object -Last 20\")",
+      "Bash(git ls-tree:*)"
     ]
   }
 }
