@@ -1,0 +1,10 @@
+2026-03-01 13:19:32,021 - dcae - DEBUG - log_message:225 - [DemoApp] Debug information for troubleshooting
+2026-03-01 13:19:32,021 - dcae - INFO - log_message:225 - [DemoApp] Application started successfully
+2026-03-01 13:19:32,021 - dcae - WARNING - log_message:225 - [DemoApp] This is a warning message
+2026-03-01 13:19:32,021 - dcae - ERROR - log_message:225 - [DemoApp] An error occurred | Context: {"error_code": 500, "user_id": 12345}
+2026-03-01 13:19:32,022 - dcae - INFO - log_message:225 - [AuthModule] User login attempt | Context: {"user_id": 98765, "ip_address": "192.168.1.100", "login_method": "oauth"}
+2026-03-01 13:19:32,022 - dcae - INFO - log_message:225 - [DemoApp] API_KEY=abcd1234efgh5678ijkl9012
+2026-03-01 13:19:32,022 - dcae - INFO - log_message:225 - [DemoApp] Bearer=*************
+2026-03-01 13:19:32,024 - dcae - INFO - log_message:225 - [RequestProcessor] Processing request step 1 | Context: {"correlation_id": "corr-12345-xyz"}
+2026-03-01 13:19:32,025 - dcae - INFO - log_message:225 - [RequestProcessor] Processing request step 2 | Context: {"correlation_id": "corr-12345-xyz"}
+2026-03-01 13:19:32,026 - dcae - ERROR - log_message:225 - [ValidationModule] Error in ValidationModule: Invalid user input: email format is incorrect | Context: {"user_id": 54321, "input_field": "email", "input_value": "invalid-email", "request_id": "req-abc-123", "error_type": "ValueError", "error_message": "Invalid user input: email format is incorrect", "traceback": "Traceback (most recent call last):\n  File \"D:\\software_dev_project\\DCAE\\demo_log_error_reporting.py\", line 66, in demo_logging_functionality\n    raise ValueError(\"Invalid user input: email format is incorrect\")\nValueError: Invalid user input: email format is incorrect\n", "correlation_id": "corr-12345-xyz"}

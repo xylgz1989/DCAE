@@ -1,0 +1,90 @@
+{
+  "performance_stats": {
+    "enabled": true,
+    "collection_interval_minutes": 5,
+    "stats": {
+      "lines_of_code": [
+        {
+          "name": "lines_of_code",
+          "value": 1250,
+          "unit": "LOC",
+          "recorded": "2026-03-01T13:23:13.468890"
+        },
+        {
+          "name": "lines_of_code",
+          "value": 1250,
+          "unit": "LOC",
+          "recorded": "2026-03-01T13:23:43.166431"
+        }
+      ],
+      "files_created": [
+        {
+          "name": "files_created",
+          "value": 23,
+          "unit": "files",
+          "recorded": "2026-03-01T13:23:13.471292"
+        },
+        {
+          "name": "files_created",
+          "value": 23,
+          "unit": "files",
+          "recorded": "2026-03-01T13:23:43.169893"
+        }
+      ],
+      "test_coverage": [
+        {
+          "name": "test_coverage",
+          "value": 87.5,
+          "unit": "%",
+          "recorded": "2026-03-01T13:23:13.474386"
+        },
+        {
+          "name": "test_coverage",
+          "value": 87.5,
+          "unit": "%",
+          "recorded": "2026-03-01T13:23:43.171763"
+        }
+      ]
+    },
+    "last_collection": "2026-03-01T13:23:43.171763"
+  },
+  "workflow_progress": {
+    "current_stage": "requirements",
+    "overall_progress": 83.0,
+    "stage_progress": {
+      "requirements": {
+        "stage": "requirements",
+        "progress": 50,
+        "updated": "2026-03-01T13:23:56.298071",
+        "details": {}
+      },
+      "architecture": {
+        "stage": "architecture",
+        "progress": 99,
+        "updated": "2026-03-01T13:23:41.812660",
+        "details": {
+          "task": "arch_task_3",
+          "completed": 3,
+          "total": 3
+        }
+      },
+      "development": {
+        "stage": "development",
+        "progress": 100,
+        "updated": "2026-03-01T13:23:43.060061",
+        "details": {
+          "feature": "feature_10",
+          "completed": 10,
+          "total": 10
+        }
+      }
+    },
+    "started_at": "2026-03-01T13:23:09.834538"
+  },
+  "display_options": {
+    "enabled": true,
+    "verbosity": "standard",
+    "show_percentage": true,
+    "show_eta": false
+  }
+}

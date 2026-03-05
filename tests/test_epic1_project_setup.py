@@ -31,6 +31,7 @@ from dcae.advanced_project_mgmt import (
     start_bmad_workflow,
     pause_current_project,
     resume_current_project,
+    is_project_paused,
     create_new_dcae_project,
     list_managed_projects,
     collect_performance_statistics
@@ -314,9 +315,10 @@ def test_project_pause_resume_manager():
 
         # Initially, no workflow should be paused
         assert pause_mgr.is_workflow_paused() is False
+        assert pause_mgr.get_pause_info() is None
 
         # Test pausing workflow
-        success = pause_mgr.pause_workflow()
+        success = pause_mgr.pause_workflow("test_pause_reason")
         assert success is True
         assert pause_mgr.is_workflow_paused() is True
 
@@ -324,29 +326,226 @@ def test_project_pause_resume_manager():
         pause_info = pause_mgr.get_pause_info()
         assert pause_info is not None
         assert "current_stage" in pause_info
+        assert "reason" in pause_info
+        assert pause_info["reason"] == "test_pause_reason"
+        assert "timestamp" in pause_info
+        assert "workflow_state" in pause_info
+
+        # Test getting pause duration
+        duration = pause_mgr.get_pause_duration()
+        assert duration is not None
+        assert isinstance(duration, (int, float))
 
         # Test resuming workflow
         success = pause_mgr.resume_workflow()
         assert success is True
         assert pause_mgr.is_workflow_paused() is False
 
+        # After resume, pause info should be gone
+        assert pause_mgr.get_pause_info() is None
 
-def test_multiple_project_manager():
-    """Test MultipleProjectManager functionality."""
+
+def test_project_pause_resume_manager_with_validation():
+    """Test ProjectPauseResumeManager functionality with data validation."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        project_path = Path(temp_dir)
+
+        # Initialize DCAE project structure
+        from dcae.init import initialize_dcae_project
+        initialize_dcae_project(str(project_path))
+
+        pause_mgr = ProjectPauseResumeManager(project_path)
+
+        # Test pausing with additional data
+        additional_data = {"test_key": "test_value", "nested": {"inner": "value"}}
+        success = pause_mgr.pause_workflow("validation_test", additional_data)
+        assert success is True
+        assert pause_mgr.is_workflow_paused() is True
+
+        # Verify pause info contains additional data
+        pause_info = pause_mgr.get_pause_info()
+        assert pause_info is not None
+        assert "additional_data" in pause_info
+        assert pause_info["additional_data"]["test_key"] == "test_value"
+        assert pause_info["additional_data"]["nested"]["inner"] == "value"
+
+
+def test_project_pause_resume_manager_edge_cases():
+    """Test ProjectPauseResumeManager edge cases and error handling."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        project_path = Path(temp_dir)
+
+        # Initialize DCAE project structure
+        from dcae.init import initialize_dcae_project
+        initialize_dcae_project(str(project_path))
+
+        pause_mgr = ProjectPauseResumeManager(project_path)
+
+        # Test resuming when no pause file exists
+        success = pause_mgr.resume_workflow()
+        assert success is False
+
+        # Test pause and resume cycle
+        success = pause_mgr.pause_workflow()
+        assert success is True
+
+        # Test attempting to pause again (should still work)
+        success = pause_mgr.pause_workflow("second_pause")
+        assert success is True
+
+        # Resume successfully
+        success = pause_mgr.resume_workflow()
+        assert success is True
+
+
+def test_project_pause_resume_manager_corrupted_data():
+    """Test ProjectPauseResumeManager with corrupted pause data."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        project_path = Path(temp_dir)
+
+        # Initialize DCAE project structure
+        from dcae.init import initialize_dcae_project
+        initialize_dcae_project(str(project_path))
+
+        pause_mgr = ProjectPauseResumeManager(project_path)
+
+        # Create a corrupted pause file
+        pause_mgr.pause_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(pause_mgr.pause_file, 'w', encoding='utf-8') as f:
+            f.write("{invalid json")
+
+        # Should handle corrupted data gracefully
+        assert pause_mgr.is_workflow_paused() is False
+        assert pause_mgr.get_pause_info() is None
+
+        # Clean up the corrupted file
+        if pause_mgr.pause_file.exists():
+            pause_mgr.pause_file.unlink()
+
+
+def test_project_pause_resume_convenience_functions():
+    """Test the convenience functions for pause/resume."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        project_path = Path(temp_dir)
+
+        # Initialize DCAE project structure
+        from dcae.init import initialize_dcae_project
+        initialize_dcae_project(str(project_path))
+
+        # Change to the project directory temporarily
+        original_cwd = os.getcwd()
+        os.chdir(project_path)
+
+        try:
+            # Test pause convenience function
+            success = pause_current_project("convenience_test")
+            assert success is True
+
+            # Check if project is paused using convenience function
+            assert is_project_paused() is True
+
+            # Resume using convenience function
+            success = resume_current_project()
+            assert success is True
+
+            # Check if project is no longer paused
+            assert is_project_paused() is False
+        finally:
+            os.chdir(original_cwd)
+
+
+def test_multiple_project_manager_enhanced():
+    """Test MultipleProjectManager enhanced functionality."""
     with tempfile.TemporaryDirectory() as temp_dir:
         projects_root = Path(temp_dir) / "projects"
 
         mgr = MultipleProjectManager(projects_root)
 
-        # Test creating a new project
-        success = mgr.create_new_project("test_project_1")
+        # Test creating a new project with unique ID
+        success = mgr.create_new_project("test_project_enhanced")
         assert success is True
 
-        # Test listing projects
+        # Test listing projects with enhanced details
         projects = mgr.get_managed_projects()
         assert len(projects) >= 1
         project_names = [p["name"] for p in projects]
-        assert "test_project_1" in project_names
+        assert "test_project_enhanced" in project_names
+
+        # Check that enhanced project details are present
+        for project in projects:
+            if project["name"] == "test_project_enhanced":
+                assert "workflow_progress" in project
+                assert "workflow_status" in project
+                assert "is_paused" in project
+                break
+
+        # Test project status functionality
+        status = mgr.get_project_status("test_project_enhanced")
+        assert status is not None
+        assert status["name"] == "test_project_enhanced"
+        assert "disk_usage" in status
+        assert "file_count" in status
+
+        # Test integration method
+        integration_success = mgr.integrate_with_existing_systems()
+        assert integration_success is True
+
+
+def test_multiple_project_manager_comprehensive():
+    """Test MultipleProjectManager comprehensive functionality."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        projects_root = Path(temp_dir) / "projects"
+
+        mgr = MultipleProjectManager(projects_root)
+
+        # Test creating multiple projects
+        success1 = mgr.create_new_project("comprehensive_test_1")
+        success2 = mgr.create_new_project("comprehensive_test_2")
+        assert success1 is True
+        assert success2 is True
+
+        # Verify unique project IDs
+        projects = mgr.get_managed_projects()
+        project_ids = [p.get("metadata", {}).get("project_id") for p in projects if p["name"].startswith("comprehensive_test")]
+        assert len(set(project_ids)) == 2  # Ensure unique IDs
+        assert all(pid is not None for pid in project_ids)
+
+        # Test switch functionality
+        # Find one of the created projects
+        test_project = next(p for p in projects if p["name"] == "comprehensive_test_1")
+        original_dir = os.getcwd()
+        try:
+            success = mgr.switch_to_project(test_project["path"])
+            assert success is True
+        finally:
+            os.chdir(original_dir)
+
+        # Test project removal with enhanced safety
+        # First try with wrong confirmation to ensure safety works
+        import io
+        import sys
+        from unittest.mock import patch
+
+        # Test removal with incorrect confirmation
+        with patch('builtins.input', return_value='WRONG_CONFIRMATION'):
+            success = mgr.remove_project("comprehensive_test_2", confirm=True)
+            assert success is False  # Should fail with wrong confirmation
+
+        # Verify project still exists
+        projects_after_wrong = mgr.get_managed_projects()
+        project_names_after_wrong = [p["name"] for p in projects_after_wrong]
+        assert "comprehensive_test_2" in project_names_after_wrong
+
+        # Now test with correct confirmation
+        correct_confirm = f'DELETE COMPREHENSIVE_TEST_2'
+        with patch('builtins.input', return_value=correct_confirm):
+            success = mgr.remove_project("comprehensive_test_2", confirm=True)
+            assert success is True
+
+        # Verify project was removed
+        projects_after = mgr.get_managed_projects()
+        project_names_after = [p["name"] for p in projects_after]
+        assert "comprehensive_test_2" not in project_names_after
 
 
 def test_performance_statistics_manager():
@@ -472,7 +671,8 @@ if __name__ == "__main__":
     test_configure_project_management_features()
     test_bmad_workflow_controller_initialization()
     test_project_pause_resume_manager()
-    test_multiple_project_manager()
+    test_multiple_project_manager_enhanced()
+    test_multiple_project_manager_comprehensive()
     test_performance_statistics_manager()
     test_collect_performance_statistics()
     test_config_file_structure()

@@ -516,6 +516,31 @@ def main():
         help="Validate existing requirements"
     )
     parser.add_argument(
+        "--export",
+        action="store_true",
+        help="Export requirements to a specified format"
+    )
+    parser.add_argument(
+        "--share",
+        action="store_true",
+        help="Generate a shareable link for requirements"
+    )
+    parser.add_argument(
+        "--format",
+        choices=["txt", "csv", "pdf", "docx", "json", "yaml"],
+        default="txt",
+        help="Format to export requirements (default: txt)"
+    )
+    parser.add_argument(
+        "--export-path",
+        help="Path to export the requirements file"
+    )
+    parser.add_argument(
+        "--expiration-hours",
+        type=int,
+        help="Expiration time for shareable links in hours"
+    )
+    parser.add_argument(
         "--project-path",
         default=".",
         help="Path to the project directory (default: current directory)"
@@ -562,8 +587,44 @@ def main():
             sys.exit(1)
         else:
             print("Requirements are valid!")
+    elif args.export:
+        requirements_path = Path(args.project_path) / "requirements.yaml"
+        requirements = load_requirements(requirements_path)
+        if not requirements:
+            print(f"No requirements found at {requirements_path}")
+            sys.exit(1)
+
+        # Import the export functionality
+        try:
+            from .requirements_export import RequirementsExporter
+        except ImportError:
+            from requirements_export import RequirementsExporter
+
+        exporter = RequirementsExporter(requirements)
+
+        # Determine output path and format
+        output_path = Path(args.export_path) if args.export_path else Path(args.project_path) / f"requirements_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{args.format}"
+
+        success = exporter.export_by_format(output_path, args.format)
+        if success:
+            print(f"Requirements exported successfully to {output_path}")
+        else:
+            print(f"Failed to export requirements to {output_path}")
+            sys.exit(1)
+    elif args.share:
+        requirements_path = Path(args.project_path) / "requirements.yaml"
+
+        # Import the sharing functionality
+        try:
+            from .requirements_export import create_shareable_link
+        except ImportError:
+            from requirements_export import create_shareable_link
+
+        expiration_hours = args.expiration_hours or 24
+        share_link = create_shareable_link(requirements_path, expiration_hours)
+        print(f"Shareable link: {share_link}")
     else:
-        print("Please specify an action: --init, --input, --edit, or --validate")
+        print("Please specify an action: --init, --input, --edit, --validate, --export, or --share")
         parser.print_help()
         sys.exit(1)
 

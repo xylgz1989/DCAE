@@ -71,6 +71,22 @@ class CLIInterface:
         if args is None:
             args = sys.argv[1:]
 
+        if not args:
+            # Show help when no arguments provided
+            print("Welcome to DCAE Testing & Documentation Generator!")
+            print()
+            print("Available commands:")
+            print("  generate-tests   - Generate test cases from source code")
+            print("  generate-docs    - Generate documentation from source code")
+            print("  analyze-coverage - Analyze test coverage of code")
+            print("  review-tests     - Review generated test cases")
+            print()
+            print("Usage: dcae-test-doc <command> [options]")
+            print("Use 'dcae-test-doc <command> --help' for specific command help")
+            print()
+            self.parser.print_help()
+            return
+
         parsed_args = self.parser.parse_args(args)
 
         if not parsed_args.command:
@@ -89,22 +105,33 @@ class CLIInterface:
             else:
                 print(f"Unknown command: {parsed_args.command}")
                 self.parser.print_help()
+        except KeyboardInterrupt:
+            print("\nOperation cancelled by user.")
         except Exception as e:
-            print(f"Error: {str(e)}", file=sys.stderr)
+            print(f"❌ Error: {str(e)}", file=sys.stderr)
             sys.exit(1)
 
     def _handle_generate_tests(self, args):
         """Handle the generate-tests command."""
+        # Validate source exists
+        if not os.path.exists(args.source):
+            print(f"❌ Source file/directory not found: {args.source}")
+            print("💡 Please check the path and try again.")
+            return
+
         # Load source code
         if os.path.isfile(args.source):
             with open(args.source, 'r', encoding='utf-8') as f:
                 source_code = f.read()
         elif os.path.isdir(args.source):
             # If it's a directory, we'll need to process all Python files
-            print("Directory support for test generation coming soon.")
+            print("❌ Directory support for test generation coming soon.")
+            print("💡 Please specify a single file for now.")
             return
         else:
             raise FileNotFoundError(f"Source file/directory not found: {args.source}")
+
+        print(f"📝 Generating {args.type} tests using {args.framework} framework...")
 
         # Create test generator
         framework_pref = FrameworkPreference(args.framework)
@@ -120,23 +147,32 @@ class CLIInterface:
         if args.output:
             with open(args.output, 'w', encoding='utf-8') as f:
                 f.write(generated_tests)
-            print(f"Tests generated and saved to {args.output}")
+            print(f"✅ Tests generated and saved to {args.output}")
         else:
-            print("Generated Tests:")
+            print("✅ Generated Tests:")
             print(generated_tests)
 
     def _handle_generate_docs(self, args):
         """Handle the generate-docs command."""
+        # Validate source exists
+        if not os.path.exists(args.source):
+            print(f"❌ Source file/directory not found: {args.source}")
+            print("💡 Please check the path and try again.")
+            return
+
         # Load source code
         if os.path.isfile(args.source):
             with open(args.source, 'r', encoding='utf-8') as f:
                 source_code = f.read()
         elif os.path.isdir(args.source):
             # If it's a directory, we'll need to process all Python files
-            print("Directory support for documentation generation coming soon.")
+            print("❌ Directory support for documentation generation coming soon.")
+            print("💡 Please specify a single file for now.")
             return
         else:
             raise FileNotFoundError(f"Source file/directory not found: {args.source}")
+
+        print(f"📝 Generating {args.format} documentation...")
 
         # Create documentation generator
         doc_format = DocFormat(args.format)
@@ -149,13 +185,19 @@ class CLIInterface:
         if args.output:
             with open(args.output, 'w', encoding='utf-8') as f:
                 f.write(generated_docs)
-            print(f"Documentation generated and saved to {args.output}")
+            print(f"✅ Documentation generated and saved to {args.output}")
         else:
-            print("Generated Documentation:")
+            print("✅ Generated Documentation:")
             print(generated_docs)
 
     def _handle_analyze_coverage(self, args):
         """Handle the analyze-coverage command."""
+        # Validate source exists
+        if not os.path.exists(args.source):
+            print(f"❌ Source directory not found: {args.source}")
+            print("💡 Please check the path and try again.")
+            return
+
         # Create coverage analyzer
         coverage_analyzer = TestCoverageAnalyzer()
 
@@ -164,6 +206,10 @@ class CLIInterface:
 
         # Prepare test paths
         if args.tests:
+            if not os.path.exists(args.tests):
+                print(f"❌ Test directory not found: {args.tests}")
+                print("💡 Please check the test path and try again.")
+                return
             test_paths = [args.tests]
         else:
             # Auto-discover test paths
@@ -172,6 +218,10 @@ class CLIInterface:
             for path in possible_paths:
                 if os.path.exists(path):
                     test_paths.append(path)
+
+            if not test_paths:
+                print("⚠️  No test directories found (looked for 'tests/' or 'test/')")
+                print("💡 Use --tests option to specify test directory explicitly.")
 
         # Analyze coverage
         coverage_report = coverage_analyzer.analyze_coverage(source_paths, test_paths)
@@ -184,7 +234,7 @@ class CLIInterface:
 
         # Check threshold
         meets_threshold = coverage_analyzer.check_coverage_threshold(coverage_report, args.threshold)
-        print(f"\nCoverage threshold ({args.threshold}%): {'MET' if meets_threshold else 'NOT MET'}")
+        print(f"\n📊 Coverage threshold ({args.threshold}%): {'✅ MET' if meets_threshold else '❌ NOT MET'}")
 
         if not meets_threshold:
             sys.exit(1)  # Exit with error code if threshold not met
@@ -193,11 +243,15 @@ class CLIInterface:
         """Handle the review-tests command."""
         # Check if test file exists
         if not os.path.exists(args.test_file):
-            raise FileNotFoundError(f"Test file not found: {args.test_file}")
+            print(f"❌ Test file not found: {args.test_file}")
+            print("💡 Please check the file path and try again.")
+            return
 
         # Read test file
         with open(args.test_file, 'r', encoding='utf-8') as f:
             test_code = f.read()
+
+        print("🔍 Reviewing test cases...")
 
         # Create test reviewer
         reviewer = TestReviewer()
@@ -221,14 +275,15 @@ class CLIInterface:
             }
             print(json.dumps(output_data, indent=2))
         else:  # text format
-            print(f"Reviewing: {args.test_file}\n")
+            print(f"📋 Reviewing: {args.test_file}\n")
             if comments:
                 for comment in comments:
-                    print(f"L{comment.line_number} [{comment.severity.upper()}]: {comment.comment}")
+                    severity_icon = "🔴" if comment.severity.upper() == "HIGH" else "🟡" if comment.severity.upper() == "MEDIUM" else "🟢"
+                    print(f"L{comment.line_number} [{severity_icon} {comment.severity.upper()}]: {comment.comment}")
                     if comment.suggestion:
-                        print(f"    Suggestion: {comment.suggestion}")
+                        print(f"💡 Suggestion: {comment.suggestion}")
             else:
-                print("No issues found.")
+                print("✅ No issues found.")
 
     def print_help(self):
         """Print help information."""

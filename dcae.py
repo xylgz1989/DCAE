@@ -600,6 +600,70 @@ Requirements:
         except Exception as e:
             return f"Error: {str(e)}"
 
+    def load_review_rules_engine(self):
+        """Load the review rules engine."""
+        try:
+            from src.review_rules_engine import ReviewRulesEngine
+            config_path = Path("config/review_rules_config.yaml")
+            if config_path.exists():
+                self.review_engine = ReviewRulesEngine(config_path)
+            else:
+                # Create engine with standard preset if config doesn't exist
+                from src.review_rules_engine import create_preset_engine
+                self.review_engine = create_preset_engine("standard")
+            return True
+        except ImportError:
+            print("Warning: Review Rules Engine not available. Install required dependencies.")
+            return False
+        except Exception as e:
+            print(f"Error loading Review Rules Engine: {e}")
+            return False
+
+    async def apply_review_rules(self, file_path: Path) -> str:
+        """Apply configured review rules to a code file."""
+        # Lazy load the review engine if not already loaded
+        if not hasattr(self, 'review_engine'):
+            if not self.load_review_rules_engine():
+                return "Error: Could not load Review Rules Engine"
+
+        if not file_path.exists():
+            return f"Error: File not found: {file_path}"
+
+        with open(file_path, 'r', encoding='utf-8') as f:
+            code = f.read()
+
+        # Prepare context for rule evaluation
+        context = {
+            "file_path": str(file_path),
+            "code_content": code,
+            "file_size": len(code),
+            "line_count": len(code.splitlines())
+        }
+
+        # Execute all checkpoints
+        results = self.review_engine.execute_all_checkpoints(context)
+
+        # Format results for output
+        output = "## Review Rules Checkpoint Results\n\n"
+
+        for checkpoint_name, result in results.items():
+            status = "✅ PASSED" if result["passed"] else "❌ FAILED"
+            output += f"### {checkpoint_name}: {status}\n\n"
+
+            if result["violations"]:
+                output += "Violations detected:\n"
+                for violation in result["violations"]:
+                    output += f"- Rule '{violation['rule_name']}' ({violation['severity']} severity)\n"
+                output += "\n"
+
+            if result["details"]:
+                output += "Details:\n"
+                for detail in result["details"]:
+                    output += f"- {detail}\n"
+                output += "\n"
+
+        return output
+
     async def generate_test_cases(self, file_path: Path, save_to: Optional[Path] = None) -> str:
         """Generate test cases for code file."""
         if not file_path.exists():
@@ -1109,6 +1173,7 @@ Examples:
   python dcae_mvp.py req "用户登录功能需求"
   python dcae_mvp.py gen "写一个用户登录功能" -o auth.py
   python dcae_mvp.py review auth.py
+  python dcae_mvp.py review-rules auth.py
   python dcae_mvp.py test-doc auth.py
   python dcae_mvp.py test-case auth.py
 
@@ -1245,6 +1310,7 @@ class CommandCompleter:
             'req': 'Generate requirement document',
             'test-doc': 'Generate test documentation',
             'test-case': 'Generate test cases',
+            'review-rules': 'Apply review rules and checkpoints to code',
             '/status': 'Show status',
             '/clear': 'Clear conversation history',
             '/help': 'Show help',
@@ -1358,16 +1424,23 @@ async def run_interactive_mode():
     completer = CommandCompleter()
     progress = ProgressDisplay()
 
-    # Print welcome message
+    # Print welcome message with clear guidance
     print("=" * 60)
     print("DCAE Interactive Mode")
     print("=" * 60)
     print()
-    print("Type a command or prompt to get started.")
-    print("Commands: gen, review, debug, req, test-doc, test-case")
-    print("Internal: /status, /clear, /help, /history, /exit")
+    print("Welcome! You can:")
+    print("- Type commands like: gen, review, debug, req, test-doc, test-case")
+    print("- Use internal commands like: /status, /clear, /help, /history, /exit")
+    print("- Enter natural language prompts for AI assistance")
     print()
-    print("Tip: Ctrl+C to cancel current request")
+    print("Examples:")
+    print("- gen \"create a login function\" -o auth.py")
+    print("- review auth.py")
+    print("- debug \"connection timeout error\" -c auth.py")
+    print("- /help for more commands")
+    print()
+    print("Tip: Press Ctrl+C to cancel current request, /exit to quit")
     print("=" * 60)
     print()
 
@@ -1434,9 +1507,31 @@ async def run_interactive_mode():
             elif command == 'test-case':
                 await handle_test_case_command(agent, history, full_prompt, progress)
 
+            elif command == 'review-rules':
+                await handle_review_rules_command(agent, history, full_prompt, progress)
+
+            elif not command:  # Empty command
+                print("❌ No command provided.")
+                print("💡 Available commands:")
+                print("   gen <prompt>          - Generate code")
+                print("   review <file>         - Review code file")
+                print("   debug <error>         - Debug an issue")
+                print("   req <prompt>          - Generate requirements")
+                print("   test-doc <file>       - Generate test documentation")
+                print("   test-case <file>      - Generate test cases")
+                print("   /help                 - Show all commands")
+                print()
+
             else:
-                # Treat as general prompt
-                await handle_general_prompt(agent, history, user_input, progress)
+                # Attempt to suggest corrections for unknown commands
+                closest_matches = suggest_command_correction(command)
+                if closest_matches:
+                    print(f"❌ Unknown command: '{command}'")
+                    print(f"💡 Did you mean: {', '.join(closest_matches)}?")
+                else:
+                    print(f"❌ Unknown command: '{command}'")
+                    print("💡 Type /help for available commands.")
+                print()
 
         except KeyboardInterrupt:
             # v3: Handle Ctrl+C to cancel current request
@@ -1488,6 +1583,7 @@ def print_interactive_help():
     print("  req <prompt>              - Generate requirements")
     print("  test-doc <file>           - Generate test documentation")
     print("  test-case <file>          - Generate test cases")
+    print("  review-rules <file>       - Apply review rules and checkpoints")
     print()
     print("Internal Commands:")
     print("  /status                   - Show status")
@@ -1496,6 +1592,42 @@ def print_interactive_help():
     print("  /help                     - Show this help")
     print("  /exit                     - Exit")
     print("=" * 60)
+
+
+def suggest_command_correction(user_input):
+    """Suggest closest matching commands for mistyped input."""
+    available_commands = ['gen', 'review', 'debug', 'req', 'test-doc', 'test-case']
+
+    # Simple similarity scoring
+    suggestions = []
+    for cmd in available_commands:
+        # Calculate similarity score (higher is more similar)
+        similarity = 0
+
+        # Exact match gets high score
+        if user_input == cmd:
+            similarity = 100
+        # Prefix match gets medium-high score
+        elif cmd.startswith(user_input):
+            similarity = 80
+        # Partial substring match gets medium score
+        elif user_input in cmd:
+            similarity = 60
+        # Character overlap gets low-medium score
+        else:
+            common_chars = len(set(user_input.lower()) & set(cmd.lower()))
+            max_len = max(len(user_input), len(cmd))
+            if max_len > 0:
+                similarity = (common_chars / max_len) * 50
+
+        if similarity > 0:
+            suggestions.append((cmd, similarity))
+
+    # Sort by similarity score descending
+    suggestions.sort(key=lambda x: x[1], reverse=True)
+
+    # Return top 2 suggestions
+    return [cmd for cmd, score in suggestions[:2]]
 
 
 def print_conversation_history(history: ConversationHistory):
@@ -1518,7 +1650,12 @@ def print_conversation_history(history: ConversationHistory):
 async def handle_gen_command(agent: DCAEAgent, history: ConversationHistory, prompt: str, progress: ProgressDisplay):
     """Handle code generation command."""
     if not prompt:
-        print("Usage: gen <prompt>")
+        print("❌ Missing prompt for 'gen' command.")
+        print("💡 Usage: gen <prompt>")
+        print("💡 Examples:")
+        print("   gen \"Create a login function\"")
+        print("   gen \"Write authentication module\" -o auth.py")
+        print()
         return
 
     # Add user message to history
@@ -1557,7 +1694,12 @@ async def handle_gen_command(agent: DCAEAgent, history: ConversationHistory, pro
 async def handle_review_command(agent: DCAEAgent, history: ConversationHistory, file_path: str, progress: ProgressDisplay):
     """Handle code review command."""
     if not file_path:
-        print("Usage: review <file>")
+        print("❌ Missing file path for 'review' command.")
+        print("💡 Usage: review <file_path>")
+        print("💡 Examples:")
+        print("   review auth.py")
+        print("   review src/main.py")
+        print()
         return
 
     history.add_user_message(f"Review code: {file_path}")
@@ -1572,7 +1714,9 @@ async def handle_review_command(agent: DCAEAgent, history: ConversationHistory, 
         if original_path.exists():
             path = original_path
         else:
-            print(f"File not found: {file_path}")
+            print(f"❌ File not found: {file_path}")
+            print("💡 Please check the file path is correct and the file exists.")
+            print()
             return
 
     print("Reviewing code...")
@@ -1597,7 +1741,12 @@ async def handle_review_command(agent: DCAEAgent, history: ConversationHistory, 
 async def handle_debug_command(agent: DCAEAgent, history: ConversationHistory, error_msg: str, progress: ProgressDisplay):
     """Handle debug command."""
     if not error_msg:
-        print("Usage: debug <error>")
+        print("❌ Missing error message for 'debug' command.")
+        print("💡 Usage: debug <error_msg> [-c <context_file>]")
+        print("💡 Examples:")
+        print("   debug \"FileNotFoundError occurred\"")
+        print("   debug \"Connection timeout\" -c auth.py")
+        print()
         return
 
     history.add_user_message(f"Debug: {error_msg}")
@@ -1624,7 +1773,12 @@ async def handle_debug_command(agent: DCAEAgent, history: ConversationHistory, e
 async def handle_req_command(agent: DCAEAgent, history: ConversationHistory, prompt: str, progress: ProgressDisplay):
     """Handle requirement document command."""
     if not prompt:
-        print("Usage: req <prompt>")
+        print("❌ Missing prompt for 'req' command.")
+        print("💡 Usage: req <prompt> [-o <output_file>]")
+        print("💡 Examples:")
+        print("   req \"User registration requirements\"")
+        print("   req \"API specification\" -o api_reqs.md")
+        print()
         return
 
     history.add_user_message(f"Requirements: {prompt}")
@@ -1651,7 +1805,12 @@ async def handle_req_command(agent: DCAEAgent, history: ConversationHistory, pro
 async def handle_test_doc_command(agent: DCAEAgent, history: ConversationHistory, file_path: str, progress: ProgressDisplay):
     """Handle test documentation command."""
     if not file_path:
-        print("Usage: test-doc <file>")
+        print("❌ Missing file path for 'test-doc' command.")
+        print("💡 Usage: test-doc <file_path> [-o <output_file>]")
+        print("💡 Examples:")
+        print("   test-doc auth.py")
+        print("   test-doc src/models/user.py -o user_test_doc.md")
+        print()
         return
 
     history.add_user_message(f"Test documentation: {file_path}")
@@ -1666,7 +1825,9 @@ async def handle_test_doc_command(agent: DCAEAgent, history: ConversationHistory
         if original_path.exists():
             path = original_path
         else:
-            print(f"File not found: {file_path}")
+            print(f"❌ File not found: {file_path}")
+            print("💡 Please check the file path is correct and the file exists.")
+            print()
             return
 
     print("Generating test documentation...")
@@ -1688,10 +1849,62 @@ async def handle_test_doc_command(agent: DCAEAgent, history: ConversationHistory
     show_budget_after_command(agent)
 
 
+async def handle_review_rules_command(agent: DCAEAgent, history: ConversationHistory, file_path: str, progress: ProgressDisplay):
+    """Handle review rules command."""
+    if not file_path:
+        print("❌ Missing file path for 'review-rules' command.")
+        print("💡 Usage: review-rules <file_path>")
+        print("💡 Examples:")
+        print("   review-rules auth.py")
+        print("   review-rules src/main.py")
+        print()
+        return
+
+    history.add_user_message(f"Apply review rules: {file_path}")
+
+    # Expand relative path to absolute
+    path = Path(file_path).resolve()
+
+    # Check if file exists in current directory or expand path
+    if not path.exists():
+        # Try with the original path in case it was a relative path
+        original_path = Path(file_path)
+        if original_path.exists():
+            path = original_path
+        else:
+            print(f"❌ File not found: {file_path}")
+            print("💡 Please check the file path is correct and the file exists.")
+            print()
+            return
+
+    print("Applying review rules...")
+    try:
+        result = await agent.apply_review_rules(path)
+        history.add_assistant_message(result)
+
+        print()
+        print("=" * 60)
+        print("Review Rules Results:")
+        print("=" * 60)
+        print()
+        print(result)
+        print()
+    except Exception as e:
+        print(f"Error during review rules application: {str(e)}")
+        history.add_assistant_message(f"Error: {str(e)}")
+
+    show_budget_after_command(agent)
+
+
 async def handle_test_case_command(agent: DCAEAgent, history: ConversationHistory, file_path: str, progress: ProgressDisplay):
     """Handle test case command."""
     if not file_path:
-        print("Usage: test-case <file>")
+        print("❌ Missing file path for 'test-case' command.")
+        print("💡 Usage: test-case <file_path>")
+        print("💡 Examples:")
+        print("   test-case auth.py")
+        print("   test-case src/models/user.py")
+        print()
         return
 
     history.add_user_message(f"Test cases: {file_path}")
@@ -1706,7 +1919,9 @@ async def handle_test_case_command(agent: DCAEAgent, history: ConversationHistor
         if original_path.exists():
             path = original_path
         else:
-            print(f"File not found: {file_path}")
+            print(f"❌ File not found: {file_path}")
+            print("💡 Please check the file path is correct and the file exists.")
+            print()
             return
 
     print("Generating test cases...")
@@ -1727,10 +1942,24 @@ async def handle_test_case_command(agent: DCAEAgent, history: ConversationHistor
 
 async def handle_general_prompt(agent: DCAEAgent, history: ConversationHistory, prompt: str, progress: ProgressDisplay):
     """Handle general prompt without specific command."""
+    if not prompt.strip():
+        print("❌ No input provided.")
+        print("💡 You can try one of these commands:")
+        print("   gen <prompt>          - Generate code from description")
+        print("   review <file>         - Review existing code")
+        print("   debug <error>         - Debug an issue")
+        print("   req <prompt>          - Generate requirements")
+        print("   test-doc <file>       - Generate test documentation")
+        print("   test-case <file>      - Generate test cases")
+        print("   review-rules <file>   - Apply review rules and checkpoints")
+        print("   /help                 - Show all available commands")
+        print()
+        return
+
     history.add_user_message(prompt)
 
     # Use code generation as default for general prompts
-    print("Processing...")
+    print("Processing your request...")
     try:
         result = await agent.generate_code(prompt)
         history.add_assistant_message(result)

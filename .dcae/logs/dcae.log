@@ -1,0 +1,37 @@
+[2026-03-01T13:35:58.029455] [INFO] [pause_resume] Workflow paused at stage: initialized (Reason: test_pause_reason)
+[2026-03-01T13:35:58.030777] [ERROR] [error] [ProjectPauseResumeManager] pause_operation error: Failed to pause workflow: 'gbk' codec can't encode character '\u2713' in position 0: illegal multibyte sequence - Context: 
+[2026-03-01T13:36:42.209679] [INFO] [pause_resume] Workflow paused at stage: initialized (Reason: test_pause_reason)
+[2026-03-01T13:36:42.212676] [INFO] [pause_resume] Workflow resuming from stage: initialized (Paused for: test_pause_reason)
+[2026-03-01T13:36:48.785216] [INFO] [pause_resume] Workflow paused at stage: initialized (Reason: validation_test)
+[2026-03-01T13:36:56.526427] [INFO] [pause_resume] Workflow paused at stage: initialized (Reason: test_pause_reason)
+[2026-03-01T13:36:56.529592] [INFO] [pause_resume] Workflow resuming from stage: initialized (Paused for: test_pause_reason)
+[2026-03-01T13:36:56.571359] [INFO] [pause_resume] Workflow paused at stage: initialized (Reason: validation_test)
+[2026-03-01T13:36:56.604105] [INFO] [pause_resume] Workflow paused at stage: initialized (Reason: manual_pause)
+[2026-03-01T13:36:56.607186] [INFO] [pause_resume] Workflow paused at stage: initialized (Reason: second_pause)
+[2026-03-01T13:36:56.610166] [INFO] [pause_resume] Workflow resuming from stage: initialized (Paused for: second_pause)
+[2026-03-01T13:36:56.638834] [ERROR] [error] [ProjectPauseResumeManager] get_pause_info error: Failed to read pause info: Expecting property name enclosed in double quotes: line 1 column 2 (char 1) - Context: 
+[2026-03-01T14:48:54.902829] [INFO] [pause_resume] Workflow paused at stage: initialized (Reason: test_reason)
+[2026-03-01T14:48:54.904294] [INFO] [pause_resume] Workflow resuming from stage: initialized (Paused for: test_reason)
+[2026-03-01T14:53:44.765206] [INFO] [integration] MultipleProjectManager initialized and integrated with DCAE systems
+[2026-03-01T14:54:50.447078] [INFO] [integration] MultipleProjectManager initialized and integrated with DCAE systems
+[2026-03-01T14:54:50.456287] [INFO] [project_management] New project created: test_project_enhanced at C:\Users\73471\AppData\Local\Temp\tmpl1z0q5o0\projects\test_project_enhanced with ID dcae-test_project_enhanced-1772348090
+[2026-03-01T14:54:50.852190] [INFO] [integration] MultipleProjectManager initialized and integrated with DCAE systems
+[2026-03-01T14:55:00.867694] [INFO] [integration] MultipleProjectManager initialized and integrated with DCAE systems
+[2026-03-01T14:55:00.904027] [INFO] [project_management] New project created: comprehensive_test_1 at C:\Users\73471\AppData\Local\Temp\tmp_uru1iqw\projects\comprehensive_test_1 with ID dcae-comprehensive_test_1-1772348100
+[2026-03-01T14:55:00.912347] [INFO] [project_management] New project created: comprehensive_test_2 at C:\Users\73471\AppData\Local\Temp\tmp_uru1iqw\projects\comprehensive_test_2 with ID dcae-comprehensive_test_2-1772348100
+[2026-03-01T14:55:00.986064] [INFO] [project_management] Project removed: comprehensive_test_2
+[2026-03-01T14:56:44.905583] [INFO] [integration] MultipleProjectManager initialized and integrated with DCAE systems
+[2026-03-01T14:56:44.916483] [INFO] [project_management] New project created: test_project_basic at C:\Users\73471\AppData\Local\Temp\tmp3zytrexn\test_projects\test_project_basic with ID dcae-test_project_basic-1772348204
+[2026-03-01T14:57:00.234850] [INFO] [integration] MultipleProjectManager initialized and integrated with DCAE systems
+[2026-03-01T14:57:00.243066] [INFO] [project_management] New project created: test_project_enhanced at C:\Users\73471\AppData\Local\Temp\tmpfcvphk3u\projects\test_project_enhanced with ID dcae-test_project_enhanced-1772348220
+[2026-03-01T14:57:00.306160] [INFO] [integration] MultipleProjectManager initialized and integrated with DCAE systems
+[2026-03-01T14:57:09.637527] [INFO] [integration] MultipleProjectManager initialized and integrated with DCAE systems
+[2026-03-01T14:57:09.651544] [INFO] [project_management] New project created: test_new_features at C:\Users\73471\AppData\Local\Temp\tmp2jonk5z0\test_projects\test_new_features with ID dcae-test_new_features-1772348229
+[2026-03-01T14:57:09.724881] [INFO] [integration] MultipleProjectManager initialized and integrated with DCAE systems
+[2026-03-01T14:57:16.438331] [INFO] [integration] MultipleProjectManager initialized and integrated with DCAE systems
+[2026-03-01T14:57:16.446566] [INFO] [project_management] New project created: test_project_enhanced at C:\Users\73471\AppData\Local\Temp\tmp13niyaec\projects\test_project_enhanced with ID dcae-test_project_enhanced-1772348236
+[2026-03-01T14:57:16.519407] [INFO] [integration] MultipleProjectManager initialized and integrated with DCAE systems
+[2026-03-01T14:57:16.526272] [INFO] [integration] MultipleProjectManager initialized and integrated with DCAE systems
+[2026-03-01T14:57:16.535078] [INFO] [project_management] New project created: comprehensive_test_1 at C:\Users\73471\AppData\Local\Temp\tmpfxuk2uev\projects\comprehensive_test_1 with ID dcae-comprehensive_test_1-1772348236
+[2026-03-01T14:57:16.543451] [INFO] [project_management] New project created: comprehensive_test_2 at C:\Users\73471\AppData\Local\Temp\tmpfxuk2uev\projects\comprehensive_test_2 with ID dcae-comprehensive_test_2-1772348236
+[2026-03-01T14:57:16.609858] [INFO] [project_management] Project removed: comprehensive_test_2

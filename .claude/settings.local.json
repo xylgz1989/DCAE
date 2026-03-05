@@ -33,7 +33,14 @@
       "Bash(git remote remove:*)",
       "Bash(powershell -Command \"Get-Content ''D:/software_dev_project/DCAE/src/dcae/business_logic_generator.py'' -TotalCount 780 | Select-Object -Last 20\")",
       "Bash(powershell -Command \"Get-Content D:\\\\software_dev_project\\\\DCAE\\\\src\\\\dcae\\\\testing_documentation\\\\test_reviewer.py | Select-Object -Last 20\")",
-      "Bash(git ls-tree:*)"
+      "Bash(git ls-tree:*)",
+      "Bash(\"D:/software_dev_project/DCAE/_bmad-output/implementation-artifacts/5-3-submit-modification-suggestions.md\":*)",
+      "Bash(PYTHONPATH=./src python:*)",
+      "Bash(echo:*)",
+      "Bash(timeout 30s powershell -Command:*)",
+      "Bash(move:*)",
+      "Bash(PYTHONPATH=. python:*)",
+      "Bash(bmad-bmm-retrospective:*)"
     ]
   }
 }

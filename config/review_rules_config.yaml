@@ -1,0 +1,227 @@
+# Default Review Rules Configuration for DCAE
+# This file defines the review rules and checkpoints for the DCAE framework
+
+rules:
+  # Quality Metrics Rules
+  - id: quality_basic
+    name: "Basic Quality Check"
+    description: "Checks for basic code quality issues like complexity and readability"
+    category: "quality_metrics"
+    severity: "medium"
+    enabled: true
+    conditions:
+      trigger_conditions:
+        - "on_file_save"
+        - "before_commit"
+      scope_limitations:
+        - "**/*.py"
+      frequency_controls:
+        interval_minutes: 5
+      exception_patterns:
+        - "test_*"
+        - "*_test"
+    actions:
+      review_action: "analyze_code_quality"
+      reporting_requirements:
+        - "console_output"
+        - "file_log"
+      notification_settings:
+        console_level: "warning"
+      escalation_procedures:
+        - "send_email_alert"
+
+  - id: quality_coverage
+    name: "Test Coverage Check"
+    description: "Ensures minimum test coverage thresholds are met"
+    category: "quality_metrics"
+    severity: "high"
+    enabled: true
+    conditions:
+      trigger_conditions:
+        - "after_test_run"
+      scope_limitations:
+        - "**/*.py"
+      frequency_controls:
+        interval_minutes: 1
+      exception_patterns:
+        - "migrations/*"
+    actions:
+      review_action: "check_test_coverage"
+      reporting_requirements:
+        - "console_output"
+        - "coverage_report"
+      notification_settings:
+        console_level: "error"
+      escalation_procedures:
+        - "block_merge_request"
+
+  # Security Rules
+  - id: security_vulnerability
+    name: "Security Vulnerability Scan"
+    description: "Scans for known security vulnerabilities in code"
+    category: "security"
+    severity: "critical"
+    enabled: true
+    conditions:
+      trigger_conditions:
+        - "before_deploy"
+        - "on_dependency_update"
+      scope_limitations:
+        - "**/*.py"
+      frequency_controls:
+        interval_minutes: 10
+      exception_patterns:
+        - "third_party/*"
+    actions:
+      review_action: "scan_vulnerabilities"
+      reporting_requirements:
+        - "security_report"
+        - "console_output"
+      notification_settings:
+        console_level: "critical"
+      escalation_procedures:
+        - "block_deployment"
+        - "alert_security_team"
+
+  # Performance Rules
+  - id: performance_threshold
+    name: "Performance Threshold Check"
+    description: "Monitors performance metrics against defined thresholds"
+    category: "performance"
+    severity: "medium"
+    enabled: true
+    conditions:
+      trigger_conditions:
+        - "during_testing"
+        - "post_deployment"
+      scope_limitations:
+        - "**/*.py"
+      frequency_controls:
+        interval_minutes: 2
+      exception_patterns:
+        - "debug_*"
+    actions:
+      review_action: "check_performance"
+      reporting_requirements:
+        - "performance_report"
+      notification_settings:
+        console_level: "warning"
+      escalation_procedures:
+        - "optimize_code"
+
+  # Architecture Rules
+  - id: architecture_dependency
+    name: "Dependency Rule Check"
+    description: "Ensures proper dependency management and layer separation"
+    category: "architecture"
+    severity: "high"
+    enabled: true
+    conditions:
+      trigger_conditions:
+        - "on_code_change"
+        - "before_merge"
+      scope_limitations:
+        - "**/*.py"
+      frequency_controls:
+        interval_minutes: 3
+      exception_patterns:
+        - "external/*"
+    actions:
+      review_action: "validate_architecture"
+      reporting_requirements:
+        - "dependency_graph"
+        - "console_output"
+      notification_settings:
+        console_level: "warning"
+      escalation_procedures:
+        - "require_arch_approval"
+
+  # Standards Rules
+  - id: standards_style
+    name: "Coding Standards Check"
+    description: "Ensures code follows project coding standards"
+    category: "standards"
+    severity: "low"
+    enabled: true
+    conditions:
+      trigger_conditions:
+        - "on_file_save"
+        - "before_commit"
+      scope_limitations:
+        - "**/*.py"
+      frequency_controls:
+        interval_minutes: 1
+      exception_patterns:
+        - "generated/*"
+        - "third_party/*"
+    actions:
+      review_action: "check_coding_standards"
+      reporting_requirements:
+        - "style_report"
+        - "console_output"
+      notification_settings:
+        console_level: "info"
+      escalation_procedures:
+        - "request_revision"
+
+checkpoints:
+  # Pre-commit checkpoint
+  - name: "pre_commit_review"
+    description: "Review executed before committing code"
+    activation_trigger: "event_based"
+    associated_rules:
+      - "quality_basic"
+      - "standards_style"
+    target_scope: "current_file"
+    execution_context: "local"
+    run_frequency: "always"
+    blocking: true
+    required_approvals: 0
+    failure_handling: "stop"
+
+  # Post-commit checkpoint
+  - name: "post_commit_review"
+    description: "Review executed after code is committed"
+    activation_trigger: "event_based"
+    associated_rules:
+      - "quality_coverage"
+      - "security_vulnerability"
+    target_scope: "entire_project"
+    execution_context: "ci_server"
+    run_frequency: "always"
+    blocking: false
+    required_approvals: 0
+    failure_handling: "notify"
+
+  # Pre-deployment checkpoint
+  - name: "pre_deployment_review"
+    description: "Review executed before deploying code"
+    activation_trigger: "milestone_based"
+    associated_rules:
+      - "security_vulnerability"
+      - "performance_threshold"
+      - "architecture_dependency"
+    target_scope: "production_build"
+    execution_context: "deployment_server"
+    run_frequency: "once"
+    blocking: true
+    required_approvals: 1
+    failure_handling: "stop"
+
+  # Weekly review checkpoint
+  - name: "weekly_quality_review"
+    description: "Weekly comprehensive quality review"
+    activation_trigger: "schedule_based"
+    associated_rules:
+      - "quality_basic"
+      - "quality_coverage"
+      - "security_vulnerability"
+      - "performance_threshold"
+      - "architecture_dependency"
+      - "standards_style"
+    target_scope: "entire_project"
+    execution_context: "analysis_server"
+    run_frequency: "weekly"
+    blocking: false
+    required_approvals: 0
+    failure_handling: "report"

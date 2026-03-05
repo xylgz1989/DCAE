@@ -1,0 +1,34 @@
+dcae:
+  bmad_workflow:
+    consensus_enabled: false
+    discipline_level: balanced
+    enabled: true
+    performance_stats:
+      collection_interval_minutes: 5
+      enabled: true
+  llm_providers:
+    anthropic:
+      api_key: ''
+      enabled: false
+      model: claude-3-5-sonnet-20241022
+    glm:
+      api_key: ''
+      enabled: false
+      model: glm-4
+    openai:
+      api_key: ''
+      enabled: false
+      model: gpt-4o
+    qwen:
+      api_key: ''
+      enabled: false
+      model: qwen-max
+  logging:
+    console_output: true
+    file_output: true
+    level: INFO
+  version: 1.0.0
+project:
+  created_date: '2026-03-01T13:35:58.017330'
+  name: ''
+  version: 0.1.0

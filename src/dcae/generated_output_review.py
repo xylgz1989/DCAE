@@ -63,7 +63,7 @@ class GeneratedOutputReviewer:
     """Reviews generated code and artifacts for quality and alignment."""
 
     def __init__(self, project_path: str, requirements_spec: Optional[Dict[str, Any]] = None,
-                 architecture_spec: Optional[Dict[str, Any]] = None):
+                 architecture_spec: Optional[Dict[str, Any]] = None, config: Optional[Dict[str, Any]] = None):
         """
         Initialize the output reviewer.
 
@@ -71,12 +71,57 @@ class GeneratedOutputReviewer:
             project_path: Path to the project root
             requirements_spec: Requirements specification
             architecture_spec: Architecture specification
+            config: Configuration parameters for the review process
         """
         self.project_path = Path(project_path)
         self.requirements_spec = requirements_spec or {}
         self.architecture_spec = architecture_spec or {}
+        self.config = config or self._get_default_config()
         self.findings: List[ReviewFinding] = []
         self.file_extensions = {'.py', '.js', '.ts', '.jsx', '.tsx', '.java', '.cpp', '.c', '.cs'}
+
+    def _get_default_config(self) -> Dict[str, Any]:
+        """Get default configuration for the review process."""
+        return {
+            "code_quality": {
+                "max_function_length": 50,
+                "enable_todo_check": True,
+                "enable_fixme_check": True,
+                "enable_formatting_check": True,
+                "enable_naming_convention_check": True,
+                "enable_complexity_analysis": True
+            },
+            "security": {
+                "enable_hardcoded_credential_scan": True,
+                "enable_sql_injection_scan": True,
+                "enable_unsafe_import_scan": True,
+                "critical_severity_threshold": ["password", "secret", "token", "key"]
+            },
+            "performance": {
+                "enable_nested_loop_detection": True,
+                "enable_complexity_analysis": True,
+                "max_nested_depth": 3
+            },
+            "architecture": {
+                "enable_component_alignment": True,
+                "enable_traceability_checks": True,
+                "enable_gap_identification": True
+            },
+            "requirements": {
+                "enable_traceability": True,
+                "enable_gap_identification": True,
+                "enable_business_logic_verification": True
+            },
+            "best_practices": {
+                "enable_print_statement_check": True,
+                "enable_debug_comment_check": True
+            },
+            "reporting": {
+                "enable_detailed_findings": True,
+                "enable_aggregated_metrics": True,
+                "enable_export_capability": True
+            }
+        }
 
     def review_generated_output(self, target_path: Optional[str] = None) -> ReviewReport:
         """
@@ -155,20 +200,20 @@ class GeneratedOutputReviewer:
                             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                                 # Count the lines in the function body
                                 start_line = node.lineno
-                                end_line = max([getattr(n, 'lineno', start_line) for n in ast.walk(node)])
+                                end_line = getattr(node, 'end_lineno', start_line)
 
                                 # Calculate the function length based on source
                                 func_lines = content.split('\n')[start_line-1:end_line]
                                 func_length = len([ln for ln in func_lines if ln.strip()])
 
-                                if func_length > 50:
+                                if func_length > self.config["code_quality"]["max_function_length"]:
                                     finding = ReviewFinding(
                                         id=f"cq_long_func_{file_path}:{start_line}",
                                         category=ReviewCategory.CODE_QUALITY,
                                         severity=ReviewSeverity.MEDIUM,
                                         file_path=str(file_path),
                                         line_number=start_line,
-                                        issue_description=f"Function '{node.name}' is too long ({func_length} non-empty lines, >50)",
+                                        issue_description=f"Function '{node.name}' is too long ({func_length} non-empty lines, >{self.config['code_quality']['max_function_length']})",
                                         recommendation="Consider breaking down the function into smaller, more manageable functions",
                                         code_snippet='\n'.join(func_lines[:5])  # First 5 lines as snippet
                                     )
@@ -216,14 +261,14 @@ class GeneratedOutputReviewer:
                                     j += 1
 
                                 # If the function is too long, add a finding
-                                if func_line_count > 50:
+                                if func_line_count > self.config["code_quality"]["max_function_length"]:
                                     finding = ReviewFinding(
                                         id=f"cq_long_func_{file_path}:{func_start_idx + 1}",
                                         category=ReviewCategory.CODE_QUALITY,
                                         severity=ReviewSeverity.MEDIUM,
                                         file_path=str(file_path),
                                         line_number=func_start_idx + 1,
-                                        issue_description=f"Function is too long ({func_line_count} lines, >50)",
+                                        issue_description=f"Function is too long ({func_line_count} lines, >{self.config['code_quality']['max_function_length']})",
                                         recommendation="Consider breaking down the function into smaller, more manageable functions",
                                         code_snippet='\n'.join(lines[func_start_idx:min(func_start_idx+5, len(lines))])
                                     )
@@ -234,33 +279,106 @@ class GeneratedOutputReviewer:
                             else:
                                 i += 1
 
-                    # Check for TODO/FIXME comments
-                    for i, line in enumerate(lines, 1):
-                        if 'TODO' in line.upper():
-                            finding = ReviewFinding(
-                                id=f"cq_todo_{file_path}:{i}",
-                                category=ReviewCategory.CODE_QUALITY,
-                                severity=ReviewSeverity.LOW,
-                                file_path=str(file_path),
-                                line_number=i,
-                                issue_description="TODO comment found in code",
-                                recommendation="Address the TODO before finalizing the code",
-                                code_snippet=line.strip()
-                            )
-                            self.findings.append(finding)
+                    # Check for TODO/FIXME comments if enabled
+                    if self.config["code_quality"]["enable_todo_check"] or self.config["code_quality"]["enable_fixme_check"]:
+                        for i, line in enumerate(lines, 1):
+                            if 'TODO' in line.upper() and self.config["code_quality"]["enable_todo_check"]:
+                                finding = ReviewFinding(
+                                    id=f"cq_todo_{file_path}:{i}",
+                                    category=ReviewCategory.CODE_QUALITY,
+                                    severity=ReviewSeverity.LOW,
+                                    file_path=str(file_path),
+                                    line_number=i,
+                                    issue_description="TODO comment found in code",
+                                    recommendation="Address the TODO before finalizing the code",
+                                    code_snippet=line.strip()
+                                )
+                                self.findings.append(finding)
 
-                        if 'FIXME' in line.upper():
-                            finding = ReviewFinding(
-                                id=f"cq_fixme_{file_path}:{i}",
-                                category=ReviewCategory.CODE_QUALITY,
-                                severity=ReviewSeverity.HIGH,
-                                file_path=str(file_path),
-                                line_number=i,
-                                issue_description="FIXME comment found in code",
-                                recommendation="Address the FIXME issue immediately",
-                                code_snippet=line.strip()
-                            )
-                            self.findings.append(finding)
+                            if 'FIXME' in line.upper() and self.config["code_quality"]["enable_fixme_check"]:
+                                finding = ReviewFinding(
+                                    id=f"cq_fixme_{file_path}:{i}",
+                                    category=ReviewCategory.CODE_QUALITY,
+                                    severity=ReviewSeverity.HIGH,
+                                    file_path=str(file_path),
+                                    line_number=i,
+                                    issue_description="FIXME comment found in code",
+                                    recommendation="Address the FIXME issue immediately",
+                                    code_snippet=line.strip()
+                                )
+                                self.findings.append(finding)
+
+                    # Check for formatting and naming convention issues
+                    if self.config["code_quality"]["enable_formatting_check"]:
+                        # Check for inconsistent indentation (mixing tabs and spaces)
+                        for i, line in enumerate(lines, 1):
+                            if '\t' in line and '    ' in line:  # Tab and 4 spaces in same line
+                                finding = ReviewFinding(
+                                    id=f"cq_indent_{file_path}:{i}",
+                                    category=ReviewCategory.CODE_QUALITY,
+                                    severity=ReviewSeverity.MEDIUM,
+                                    file_path=str(file_path),
+                                    line_number=i,
+                                    issue_description="Mixed tabs and spaces in indentation",
+                                    recommendation="Use consistent indentation (preferably spaces)",
+                                    code_snippet=line.strip()
+                                )
+                                self.findings.append(finding)
+
+                    if self.config["code_quality"]["enable_naming_convention_check"]:
+                        # Check for naming conventions in Python files
+                        if file_path.suffix == '.py':
+                            for i, line in enumerate(lines, 1):
+                                # Check for variable names that don't follow snake_case
+                                var_match = re.match(r'^\s*(\w+)\s*=', line)
+                                if var_match:
+                                    var_name = var_match.group(1)
+                                    if not re.match(r'^[a-z][a-z0-9_]*$', var_name) and var_name not in ['__', '_']:
+                                        finding = ReviewFinding(
+                                            id=f"cq_naming_{file_path}:{i}",
+                                            category=ReviewCategory.CODE_QUALITY,
+                                            severity=ReviewSeverity.LOW,
+                                            file_path=str(file_path),
+                                            line_number=i,
+                                            issue_description=f"Variable '{var_name}' does not follow snake_case naming convention",
+                                            recommendation="Use snake_case for variable names (lowercase with underscores)",
+                                            code_snippet=line.strip()
+                                        )
+                                        self.findings.append(finding)
+
+                                # Check for function names that don't follow snake_case
+                                func_match = re.search(r'def\s+(\w+)', line)
+                                if func_match:
+                                    func_name = func_match.group(1)
+                                    if not re.match(r'^[a-z][a-z0-9_]*$', func_name):
+                                        finding = ReviewFinding(
+                                            id=f"cq_func_naming_{file_path}:{i}",
+                                            category=ReviewCategory.CODE_QUALITY,
+                                            severity=ReviewSeverity.LOW,
+                                            file_path=str(file_path),
+                                            line_number=i,
+                                            issue_description=f"Function '{func_name}' does not follow snake_case naming convention",
+                                            recommendation="Use snake_case for function names (lowercase with underscores)",
+                                            code_snippet=line.strip()
+                                        )
+                                        self.findings.append(finding)
+
+                                # Check for class names that don't follow PascalCase
+                                class_match = re.search(r'class\s+(\w+)', line)
+                                if class_match:
+                                    class_name = class_match.group(1)
+                                    if not re.match(r'^[A-Z][a-zA-Z0-9]*$', class_name):
+                                        finding = ReviewFinding(
+                                            id=f"cq_class_naming_{file_path}:{i}",
+                                            category=ReviewCategory.CODE_QUALITY,
+                                            severity=ReviewSeverity.LOW,
+                                            file_path=str(file_path),
+                                            line_number=i,
+                                            issue_description=f"Class '{class_name}' does not follow PascalCase naming convention",
+                                            recommendation="Use PascalCase for class names (capitalized words with no spaces)",
+                                            code_snippet=line.strip()
+                                        )
+                                        self.findings.append(finding)
 
                 except Exception as e:
                     print(f"    Warning: Could not review {file_path}: {str(e)}")
@@ -402,21 +520,73 @@ class GeneratedOutputReviewer:
             print("    Skipping requirements review - no requirements specification provided")
             return
 
-        # Extract requirement IDs
-        requirement_ids = set()
+        # Extract requirement IDs and their descriptions
+        functional_requirements = {}
+        non_functional_requirements = {}
+
         if "functional_requirements" in self.requirements_spec:
             for req in self.requirements_spec["functional_requirements"]:
                 if "id" in req:
-                    requirement_ids.add(req["id"])
+                    functional_requirements[req["id"]] = req.get("description", "")
 
         if "non_functional_requirements" in self.requirements_spec:
             for req in self.requirements_spec["non_functional_requirements"]:
                 if "id" in req:
-                    requirement_ids.add(req["id"])
+                    non_functional_requirements[req["id"]] = req.get("description", "")
 
-        # For this basic implementation, we'll just report that we checked
-        # In a full implementation, this would look for requirement traces in code comments/docstrings
-        print(f"    Checked for coverage of {len(requirement_ids)} requirements")
+        # Search for requirement implementations in code
+        requirement_implementations = {}
+
+        for file_path in path.rglob("*"):
+            if file_path.is_file() and file_path.suffix in self.file_extensions:
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+
+                    # Look for requirement traces in comments, docstrings, and code
+                    for req_id, req_desc in functional_requirements.items():
+                        # Case-insensitive search for requirement ID in the file
+                        if req_id.lower() in content.lower():
+                            if req_id not in requirement_implementations:
+                                requirement_implementations[req_id] = []
+                            requirement_implementations[req_id].append(str(file_path))
+
+                    for req_id, req_desc in non_functional_requirements.items():
+                        # Case-insensitive search for requirement ID in the file
+                        if req_id.lower() in content.lower():
+                            if req_id not in requirement_implementations:
+                                requirement_implementations[req_id] = []
+                            requirement_implementations[req_id].append(str(file_path))
+
+                except Exception as e:
+                    print(f"    Warning: Could not review {file_path}: {str(e)}")
+
+        # Identify gaps in requirement coverage
+        all_req_ids = set(functional_requirements.keys()).union(set(non_functional_requirements.keys()))
+        covered_req_ids = set(requirement_implementations.keys())
+        uncovered_req_ids = all_req_ids - covered_req_ids
+
+        # Report uncovered requirements as findings
+        for req_id in uncovered_req_ids:
+            req_desc = functional_requirements.get(req_id) or non_functional_requirements.get(req_id, "Unknown requirement")
+
+            finding = ReviewFinding(
+                id=f"req_gap_{req_id}",
+                category=ReviewCategory.REQUIREMENTS_COVERAGE,
+                severity=ReviewSeverity.HIGH,
+                file_path="requirements",
+                line_number=0,
+                issue_description=f"Requirement '{req_id}' is not implemented in code ('{req_desc}')",
+                recommendation=f"Implement the missing requirement '{req_id}' or update requirement traceability",
+                code_snippet=""
+            )
+            self.findings.append(finding)
+
+        # Also report on business logic verification if specified
+        for req_id, req_desc in functional_requirements.items():
+            if req_id in requirement_implementations and "business logic" in req_desc.lower():
+                # Add a note that business logic requirement is traced
+                print(f"    Requirement {req_id} traced to: {requirement_implementations[req_id]}")
 
     def _review_security(self, path: Path):
         """Review security aspects."""
@@ -430,48 +600,71 @@ class GeneratedOutputReviewer:
 
                     lines = content.split('\n')
                     for i, line in enumerate(lines, 1):
-                        # Check for hardcoded passwords
-                        if re.search(r'(password|secret|token).*["\'][^"\']+["\']', line, re.IGNORECASE):
-                            finding = ReviewFinding(
-                                id=f"sec_hardcoded_{file_path}:{i}",
-                                category=ReviewCategory.SECURITY,
-                                severity=ReviewSeverity.CRITICAL,
-                                file_path=str(file_path),
-                                line_number=i,
-                                issue_description="Hardcoded credential found in code",
-                                recommendation="Move credentials to environment variables or secure configuration",
-                                code_snippet=line.strip()
-                            )
-                            self.findings.append(finding)
+                        # Check for hardcoded passwords (enhanced pattern)
+                        if self.config["security"]["enable_hardcoded_credential_scan"]:
+                            # Look for assignments with common credential terms
+                            credential_pattern = r'(password|secret|token|key|credential|auth|login|pass|pwd|api_key|client_secret)\s*[=:]\s*["\'][^"\']+["\']'
+                            if re.search(credential_pattern, line, re.IGNORECASE):
+                                finding = ReviewFinding(
+                                    id=f"sec_hardcoded_{file_path}:{i}",
+                                    category=ReviewCategory.SECURITY,
+                                    severity=ReviewSeverity.CRITICAL,
+                                    file_path=str(file_path),
+                                    line_number=i,
+                                    issue_description="Hardcoded credential found in code",
+                                    recommendation="Move credentials to environment variables or secure configuration",
+                                    code_snippet=line.strip()
+                                )
+                                self.findings.append(finding)
 
-                        # Check for SQL injection vulnerabilities (simple patterns)
-                        if re.search(r'cursor.execute|execute\(|conn.execute', line, re.IGNORECASE) and \
-                           re.search(r'f"|f\'|\+.+|".+|format\(', line):
-                            finding = ReviewFinding(
-                                id=f"sec_sql_inj_{file_path}:{i}",
-                                category=ReviewCategory.SECURITY,
-                                severity=ReviewSeverity.HIGH,
-                                file_path=str(file_path),
-                                line_number=i,
-                                issue_description="Potential SQL injection vulnerability found",
-                                recommendation="Use parameterized queries instead of string concatenation",
-                                code_snippet=line.strip()
-                            )
-                            self.findings.append(finding)
+                        # Check for SQL injection vulnerabilities (enhanced patterns)
+                        if self.config["security"]["enable_sql_injection_scan"]:
+                            # Check for string concatenation in SQL queries
+                            if re.search(r'(cursor.execute|execute\(|conn.execute|db.query)', line, re.IGNORECASE):
+                                # Check for string formatting that might be vulnerable
+                                if re.search(r'f"|f\'|\+.+|".+|format\(|%[^%]', line):
+                                    finding = ReviewFinding(
+                                        id=f"sec_sql_inj_{file_path}:{i}",
+                                        category=ReviewCategory.SECURITY,
+                                        severity=ReviewSeverity.HIGH,
+                                        file_path=str(file_path),
+                                        line_number=i,
+                                        issue_description="Potential SQL injection vulnerability found",
+                                        recommendation="Use parameterized queries instead of string concatenation",
+                                        code_snippet=line.strip()
+                                    )
+                                    self.findings.append(finding)
 
-                        # Check for insecure imports
-                        if re.search(r'import pickle|from pickle', line, re.IGNORECASE):
-                            finding = ReviewFinding(
-                                id=f"sec_pickle_{file_path}:{i}",
-                                category=ReviewCategory.SECURITY,
-                                severity=ReviewSeverity.HIGH,
-                                file_path=str(file_path),
-                                line_number=i,
-                                issue_description="Use of unsafe pickle module",
-                                recommendation="Avoid pickle for untrusted data; use safer serialization methods",
-                                code_snippet=line.strip()
-                            )
-                            self.findings.append(finding)
+                        # Check for unsafe imports
+                        if self.config["security"]["enable_unsafe_import_scan"]:
+                            if re.search(r'import pickle|from pickle import|eval\(|exec\(|os\.system|subprocess\.call\(|subprocess\.Popen\(', line, re.IGNORECASE):
+                                severity = ReviewSeverity.HIGH
+                                if 'pickle' in line.lower():
+                                    issue_desc = "Use of unsafe pickle module"
+                                    rec = "Avoid pickle for untrusted data; use safer serialization methods"
+                                elif 'eval(' in line.lower() or 'exec(' in line.lower():
+                                    issue_desc = "Dangerous eval/exec usage"
+                                    rec = "Avoid eval/exec functions; use safer alternatives"
+                                    severity = ReviewSeverity.CRITICAL
+                                elif 'os.system' in line.lower() or 'subprocess.call' in line.lower() or 'subprocess.Popen' in line.lower():
+                                    issue_desc = "Potential command injection risk"
+                                    rec = "Sanitize inputs before passing to system commands"
+                                    severity = ReviewSeverity.HIGH
+                                else:
+                                    issue_desc = "Potentially unsafe import/function found"
+                                    rec = "Review usage for security implications"
+
+                                finding = ReviewFinding(
+                                    id=f"sec_unsafe_{file_path}:{i}",
+                                    category=ReviewCategory.SECURITY,
+                                    severity=severity,
+                                    file_path=str(file_path),
+                                    line_number=i,
+                                    issue_description=issue_desc,
+                                    recommendation=rec,
+                                    code_snippet=line.strip()
+                                )
+                                self.findings.append(finding)
 
                 except Exception as e:
                     print(f"    Warning: Could not review security in {file_path}: {str(e)}")
@@ -499,21 +692,66 @@ class GeneratedOutputReviewer:
     def _analyze_ast_for_performance(self, tree: ast.AST, file_path: Path):
         """Analyze AST for performance issues."""
         for node in ast.walk(tree):
-            if isinstance(node, ast.For) or isinstance(node, ast.While):
+            if isinstance(node, (ast.For, ast.While)):
                 # Check for nested loops which could indicate performance issues
+                nesting_level = self._calculate_nesting_level(node, tree)
+
+                if nesting_level >= self.config["performance"]["max_nested_depth"]:
+                    finding = ReviewFinding(
+                        id=f"perf_deep_nest_{file_path}:{node.lineno}",
+                        category=ReviewCategory.PERFORMANCE,
+                        severity=ReviewSeverity.HIGH,
+                        file_path=str(file_path),
+                        line_number=node.lineno,
+                        issue_description=f"Deeply nested loops detected (depth: {nesting_level}, threshold: {self.config['performance']['max_nested_depth']}) which may cause performance issues",
+                        recommendation="Consider algorithm optimization or alternative data structures",
+                        code_snippet=self._get_code_snippet(file_path, node)
+                    )
+                    self.findings.append(finding)
+
+                # Look for nested loops more systematically
+                nested_found = False
                 for child in ast.walk(node):
-                    if isinstance(child, ast.For) or isinstance(child, ast.While):
-                        finding = ReviewFinding(
-                            id=f"perf_nested_loop_{file_path}:{node.lineno}",
-                            category=ReviewCategory.PERFORMANCE,
-                            severity=ReviewSeverity.MEDIUM,
-                            file_path=str(file_path),
-                            line_number=node.lineno,
-                            issue_description="Nested loops detected which may cause performance issues",
-                            recommendation="Consider algorithm optimization or alternative data structures",
-                            code_snippet=ast.get_source_segment(open(file_path).read(), node)
-                        )
-                        self.findings.append(finding)
+                    if isinstance(child, (ast.For, ast.While)) and child != node:
+                        nested_found = True
+                        break
+
+                if nested_found:
+                    finding = ReviewFinding(
+                        id=f"perf_nested_loop_{file_path}:{node.lineno}",
+                        category=ReviewCategory.PERFORMANCE,
+                        severity=ReviewSeverity.MEDIUM,
+                        file_path=str(file_path),
+                        line_number=node.lineno,
+                        issue_description="Nested loops detected which may cause performance issues",
+                        recommendation="Consider algorithm optimization or alternative data structures",
+                        code_snippet=self._get_code_snippet(file_path, node)
+                    )
+                    self.findings.append(finding)
+
+    def _calculate_nesting_level(self, target_node: ast.AST, tree: ast.AST) -> int:
+        """Calculate the nesting level of a loop node within other control structures."""
+        def is_loop_construct(node):
+            return isinstance(node, (ast.For, ast.While))
+
+        # A simple approach: find all ancestors of the target node that are loops
+        nesting_level = 0
+
+        # Get all nodes in the tree and check which ones contain our target
+        for potential_parent in ast.walk(tree):
+            if is_loop_construct(potential_parent) and self._node_contains(potential_parent, target_node):
+                # This parent contains our target node and is a loop construct
+                nesting_level += 1
+
+        # Subtract 1 because the target itself is counted as a level
+        return max(0, nesting_level - (1 if is_loop_construct(target_node) else 0))
+
+    def _node_contains(self, parent: ast.AST, child: ast.AST) -> bool:
+        """Check if parent node contains the child node."""
+        for node in ast.walk(parent):
+            if node == child:
+                return True
+        return False
 
     def _review_best_practices(self, path: Path):
         """Review adherence to best practices."""
@@ -565,6 +803,30 @@ class GeneratedOutputReviewer:
         summary["categories_covered"] = list(summary["categories_covered"])
 
         return summary
+
+    def _get_code_snippet(self, file_path: Path, node) -> str:
+        """Extract a code snippet from the file around the given AST node."""
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+
+            # Get the line number of the node
+            start_line = getattr(node, 'lineno', 1) - 1  # lineno is 1-indexed, convert to 0-indexed
+            end_line = getattr(node, 'end_lineno', start_line + 1) - 1  # Some Python versions have end_lineno
+
+            # Ensure we have valid indices
+            start_line = max(0, start_line)
+            end_line = min(len(lines) - 1, end_line)
+
+            # Extract a reasonable-sized snippet
+            snippet_start = max(0, start_line - 2)
+            snippet_end = min(len(lines), end_line + 3)
+
+            snippet_lines = lines[snippet_start:snippet_end]
+            return ''.join(snippet_lines).strip()
+        except Exception:
+            # Fallback if reading the file fails
+            return str(node)[:200]  # Limit to prevent huge outputs
 
     def export_report(self, report: ReviewReport, output_path: str):
         """Export the review report to a file."""
@@ -684,6 +946,16 @@ def long_function():  # This function will be too long
     at = 49
     au = 50
     av = 51  # Over 50 lines
+    aw = 52
+    ax = 53
+    ay = 54
+    az = 55
+    ba = 56
+    bb = 57
+    bc = 58
+    bd = 59
+    be = 60
+    bf = 61  # Over 50 lines
 
     cursor.execute("SELECT * FROM users WHERE id = " + str(x))  # SQL injection
     return x_val
@@ -706,7 +978,7 @@ def long_function():  # This function will be too long
             ]
         }
 
-        # Initialize the reviewer
+        # Initialize the reviewer with custom configuration
         reviewer = GeneratedOutputReviewer(
             project_path=str(project_path),
             requirements_spec=requirements_spec,

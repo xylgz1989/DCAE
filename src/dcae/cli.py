@@ -32,6 +32,14 @@ from .req_docs_generator import (
     generate_preliminary_requirements_documents,
     create_sample_project_inputs
 )
+# Import task management functions
+from .task_management.cli_integration import add_task_management_to_parser, handle_task_command
+# Import product knowledge functions
+from .product_knowledge.cli_integration import (
+    search_knowledge, knowledge_info, get_document, suggest_knowledge
+)
+# Import the best practices review functionality
+from .generated_output_review import GeneratedOutputReviewer
 
 
 class DCAECLI:
@@ -95,6 +103,9 @@ class DCAECLI:
         # Status command
         status_parser = subparsers.add_parser("status", help="Show project status")
 
+        # Task management command
+        add_task_management_to_parser(subparsers)
+
         # Requirements command
         req_parser = subparsers.add_parser("requirements", help="Manage project requirements")
         req_subparsers = req_parser.add_subparsers(dest="req_command", help="Requirements commands")
@@ -138,6 +149,79 @@ class DCAECLI:
         )
 
         req_doc_sample_parser = req_doc_subparsers.add_parser("sample", help="Create sample project inputs file")
+
+        # Product knowledge command
+        knowledge_parser = subparsers.add_parser("knowledge", help="Access product knowledge and documentation")
+        knowledge_subparsers = knowledge_parser.add_subparsers(dest="knowledge_command", help="Knowledge commands")
+
+        knowledge_search_parser = knowledge_subparsers.add_parser("search", help="Search for product knowledge")
+        knowledge_search_parser.add_argument(
+            "query",
+            help="Search query for product knowledge"
+        )
+        knowledge_search_parser.add_argument(
+            "--max-results", "-n", type=int, default=5,
+            help="Maximum number of results to return (default: 5)"
+        )
+        knowledge_search_parser.add_argument(
+            "--knowledge-base", "-kb", type=Path,
+            help="Path to knowledge base directory (default: configured path)"
+        )
+
+        knowledge_info_parser = knowledge_subparsers.add_parser("info", help="Show information about knowledge base")
+        knowledge_info_parser.add_argument(
+            "--knowledge-base", "-kb", type=Path,
+            help="Path to knowledge base directory (default: configured path)"
+        )
+
+        knowledge_get_parser = knowledge_subparsers.add_parser("get", help="Retrieve a specific document")
+        knowledge_get_parser.add_argument(
+            "doc_id",
+            help="ID of the document to retrieve"
+        )
+        knowledge_get_parser.add_argument(
+            "--knowledge-base", "-kb", type=Path,
+            help="Path to knowledge base directory (default: configured path)"
+        )
+
+        knowledge_suggest_parser = knowledge_subparsers.add_parser("suggest", help="Get relevant knowledge for context")
+        knowledge_suggest_parser.add_argument(
+            "context",
+            help="Development context to find relevant knowledge for"
+        )
+        knowledge_suggest_parser.add_argument(
+            "--max-results", "-n", type=int, default=3,
+            help="Maximum number of suggestions (default: 3)"
+        )
+        knowledge_suggest_parser.add_argument(
+            "--knowledge-base", "-kb", type=Path,
+            help="Path to knowledge base directory (default: configured path)"
+        )
+
+        # Best practices review command
+        best_practices_parser = subparsers.add_parser("best-practices", help="Run best practices review")
+        best_practices_subparsers = best_practices_parser.add_subparsers(dest="bp_command", help="Best practices commands")
+
+        bp_review_parser = best_practices_subparsers.add_parser("review", help="Review code for best practices compliance")
+        bp_review_parser.add_argument(
+            "target_path",
+            nargs="?",
+            default=".",
+            help="Path to review for best practices (default: current directory)"
+        )
+        bp_review_parser.add_argument(
+            "--output",
+            "-o",
+            help="Output file for the review report (default: console output)"
+        )
+        bp_review_parser.add_argument(
+            "--requirements-file",
+            help="Path to requirements specification file"
+        )
+        bp_review_parser.add_argument(
+            "--architecture-file",
+            help="Path to architecture specification file"
+        )
 
         return parser
 
@@ -345,6 +429,219 @@ class DCAECLI:
             print("Please specify a requirements documents command: generate or sample")
             sys.exit(1)
 
+    def run_knowledge(self, args):
+        """Run the knowledge command."""
+        import asyncio
+
+        if args.knowledge_command == "search":
+            from .product_knowledge.access import ProductKnowledgeAccess, SimpleProductKnowledgeCache
+            from .config import DCAEConfig
+
+            # Load configuration to get knowledge base path
+            config_path = Path(".dcae/config.yaml")
+            if config_path.exists():
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config_data = yaml.safe_load(f)
+                kb_path = Path(config_data.get('dcae', {}).get('project_knowledge_path', './docs'))
+            else:
+                kb_path = Path("./docs")
+
+            # Override with command-line option if provided
+            if args.knowledge_base:
+                kb_path = args.knowledge_base
+
+            # Create product knowledge access instance
+            cache = SimpleProductKnowledgeCache()
+            knowledge_access = ProductKnowledgeAccess(kb_path, cache)
+
+            # Perform search
+            async def run_search():
+                results = await knowledge_access.search(args.query, args.max_results)
+                return results
+
+            results = asyncio.run(run_search())
+
+            # Print results
+            if results:
+                print(f"\nFound {len(results)} relevant documents:\n")
+                for i, result in enumerate(results, 1):
+                    print(f"{i}. {result['title']}")
+                    print(f"   Source: {result['source_path']}")
+                    print(f"   Relevance: {result['score']:.2f}")
+                    print(f"   Preview: {result['content_preview']}\n")
+            else:
+                print("No relevant documents found.")
+
+        elif args.knowledge_command == "info":
+            from .config import DCAEConfig
+
+            # Load configuration to get knowledge base path
+            config_path = Path(".dcae/config.yaml")
+            if config_path.exists():
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config_data = yaml.safe_load(f)
+                kb_path = Path(config_data.get('dcae', {}).get('project_knowledge_path', './docs'))
+            else:
+                kb_path = Path("./docs")
+
+            # Override with command-line option if provided
+            if args.knowledge_base:
+                kb_path = args.knowledge_base
+
+            if not kb_path.exists():
+                print(f"Knowledge base path does not exist: {kb_path}")
+                sys.exit(1)
+
+            # Count documents
+            md_files = list(kb_path.rglob("*.md"))
+            txt_files = list(kb_path.rglob("*.txt"))
+            rst_files = list(kb_path.rglob("*.rst"))
+
+            total_docs = len(md_files) + len(txt_files) + len(rst_files)
+
+            print(f"Product Knowledge Base Information:")
+            print(f"  Path: {kb_path.absolute()}")
+            print(f"  Total documents: {total_docs}")
+            print(f"  Markdown files: {len(md_files)}")
+            print(f"  Text files: {len(txt_files)}")
+            print(f"  ReStructuredText files: {len(rst_files)}")
+
+        elif args.knowledge_command == "get":
+            from .product_knowledge.access import ProductKnowledgeAccess, SimpleProductKnowledgeCache
+            from .config import DCAEConfig
+
+            # Load configuration to get knowledge base path
+            config_path = Path(".dcae/config.yaml")
+            if config_path.exists():
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config_data = yaml.safe_load(f)
+                kb_path = Path(config_data.get('dcae', {}).get('project_knowledge_path', './docs'))
+            else:
+                kb_path = Path("./docs")
+
+            # Override with command-line option if provided
+            if args.knowledge_base:
+                kb_path = args.knowledge_base
+
+            # Create product knowledge access instance
+            cache = SimpleProductKnowledgeCache()
+            knowledge_access = ProductKnowledgeAccess(kb_path, cache)
+
+            # Get document
+            async def run_get():
+                doc = await knowledge_access.get_document_by_id(args.doc_id)
+                return doc
+
+            doc = asyncio.run(run_get())
+
+            if doc:
+                print(f"Title: {doc['title']}")
+                print(f"Source: {doc['source_path']}")
+                print(f"Content:\n{doc['content']}")
+            else:
+                print(f"No document found with ID: {doc['id']}")
+
+        elif args.knowledge_command == "suggest":
+            from .product_knowledge.access import ProductKnowledgeAccess, SimpleProductKnowledgeCache
+            from .config import DCAEConfig
+
+            # Load configuration to get knowledge base path
+            config_path = Path(".dcae/config.yaml")
+            if config_path.exists():
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config_data = yaml.safe_load(f)
+                kb_path = Path(config_data.get('dcae', {}).get('project_knowledge_path', './docs'))
+            else:
+                kb_path = Path("./docs")
+
+            # Override with command-line option if provided
+            if args.knowledge_base:
+                kb_path = args.knowledge_base
+
+            # Create product knowledge access instance
+            cache = SimpleProductKnowledgeCache()
+            knowledge_access = ProductKnowledgeAccess(kb_path, cache)
+
+            # Get relevant documents
+            async def run_suggest():
+                results = await knowledge_access.get_relevant_documents(args.context, args.max_results)
+                return results
+
+            results = asyncio.run(run_suggest())
+
+            # Print suggestions
+            if results:
+                print(f"\nBased on your context '{args.context}', here are relevant documents:\n")
+                for i, result in enumerate(results, 1):
+                    print(f"{i}. {result['title']}")
+                    print(f"   Source: {result['source_path']}")
+                    print(f"   Relevance: {result['score']:.2f}")
+            else:
+                print("No relevant documents found for the given context.")
+        else:
+            print("Please specify a knowledge command: search, info, get, or suggest")
+            sys.exit(1)
+
+    def run_best_practices(self, args):
+        """Run the best practices command."""
+        if args.bp_command == "review":
+            # Load requirements and architecture specs if provided
+            requirements_spec = None
+            if args.requirements_file:
+                req_path = Path(args.requirements_file)
+                if req_path.exists():
+                    with open(req_path, 'r', encoding='utf-8') as f:
+                        if req_path.suffix.lower() in ['.yaml', '.yml']:
+                            import yaml
+                            requirements_spec = yaml.safe_load(f)
+                        else:
+                            import json
+                            requirements_spec = json.load(f)
+                else:
+                    print(f"Requirements file not found: {req_path}")
+                    sys.exit(1)
+
+            architecture_spec = None
+            if args.architecture_file:
+                arch_path = Path(args.architecture_file)
+                if arch_path.exists():
+                    with open(arch_path, 'r', encoding='utf-8') as f:
+                        if arch_path.suffix.lower() in ['.yaml', '.yml']:
+                            import yaml
+                            architecture_spec = yaml.safe_load(f)
+                        else:
+                            import json
+                            architecture_spec = json.load(f)
+                else:
+                    print(f"Architecture file not found: {arch_path}")
+                    sys.exit(1)
+
+            # Initialize the best practices reviewer
+            reviewer = GeneratedOutputReviewer(
+                project_path=args.target_path,
+                requirements_spec=requirements_spec,
+                architecture_spec=architecture_spec
+            )
+
+            print(f"DCAE Best Practices Review - Analyzing: {args.target_path}")
+            print("="*60)
+
+            # Perform the review
+            report = reviewer.review_generated_output()
+
+            # Print summary
+            reviewer.print_findings_summary(report)
+
+            # Export report if output file specified
+            if args.output:
+                reviewer.export_report(report, args.output)
+                print(f"\nDetailed report exported to: {args.output}")
+            else:
+                print(f"\nTo export detailed report, use --output option.")
+        else:
+            print("Please specify a best practices command: review")
+            sys.exit(1)
+
     def run(self):
         """Run the CLI."""
         if len(sys.argv) == 1:
@@ -365,6 +662,13 @@ class DCAECLI:
             self.run_requirements(args)
         elif args.command == "req-docs":
             self.run_req_docs(args)
+        elif args.command == "task" or args.command == "tasks":
+            import asyncio
+            asyncio.run(handle_task_command(args))
+        elif args.command == "knowledge":
+            self.run_knowledge(args)
+        elif args.command == "best-practices":
+            self.run_best_practices(args)
         else:
             self.parser.print_help()
             sys.exit(1)

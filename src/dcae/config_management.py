@@ -4,8 +4,7 @@ Configuration Management Module
 
 This module implements the configuration management functionality for Epic #1:
 Project Setup & Management, specifically stories 1-2 (Project Configuration),
-1-6 (Global Settings Configuration), 1-7 (API Key Management), and
-1-9 (Settings Update).
+1-7 (API Key Management), and 1-9 (Settings Update).
 
 As a developer,
 I want to configure project settings effectively,
@@ -96,7 +95,8 @@ class DCAEConfig:
                     "level": "INFO",
                     "file_output": True,
                     "console_output": True
-                }
+                },
+                "project_knowledge_path": "./docs"  # Default knowledge base path
             }
         }
 
@@ -252,6 +252,28 @@ class DCAEConfig:
             List of provider names
         """
         return list(self.config_data["dcae"]["llm_providers"].keys())
+
+    def get_project_knowledge_path(self) -> str:
+        """
+        Get the project knowledge base path.
+
+        Returns:
+            Path to the project knowledge base
+        """
+        return self.config_data["dcae"].get("project_knowledge_path", "./docs")
+
+    def set_project_knowledge_path(self, path: str) -> bool:
+        """
+        Set the project knowledge base path.
+
+        Args:
+            path: Path to the project knowledge base
+
+        Returns:
+            True if successful, False otherwise
+        """
+        self.config_data["dcae"]["project_knowledge_path"] = path
+        return self._save_config(self.config_data)
 
 
 class ConfigurationManager:
