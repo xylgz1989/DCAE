@@ -81,7 +81,11 @@ development_status:
   8-9-manage-parallel-tasks: done
 
   # Epic 9: Product Knowledge Integration
-  9-1-fuse-dev-product-knowledge: review
+  9-1-fuse-dev-product-knowledge: done
+  9-2-input-domain-specific-knowledge: done
+  9-3-provide-cross-domain-recommendations: done
+  9-4-reflect-best-practices: done
+  9-5-learn-project-specific-constraints: done
 
 # Status Definitions:
 # - ready-for-dev: Story has been defined and is ready for implementation
