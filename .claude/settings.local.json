@@ -40,7 +40,8 @@
       "Bash(timeout 30s powershell -Command:*)",
       "Bash(move:*)",
       "Bash(PYTHONPATH=. python:*)",
-      "Bash(bmad-bmm-retrospective:*)"
+      "Bash(bmad-bmm-retrospective:*)",
+      "Bash(git tag:*)"
     ]
   }
 }
