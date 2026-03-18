@@ -1,2 +1,0 @@
-[console_scripts]
-dcae = dcae_cli:main
