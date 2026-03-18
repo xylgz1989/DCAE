@@ -1,106 +1,199 @@
-# DCAE - Disciplined Consensus-Driven Agentic Engineering Framework
+# DCAE Framework
 
-DCAE is a comprehensive AI-assisted software engineering platform with sophisticated knowledge fusion capabilities. This project has evolved from a distributed coding agent environment into a complete framework supporting 9 major epics with integrated components for knowledge management, constraint validation, code review, and workflow orchestration.
+**Disciplined Consensus-Driven Agentic Engineering** - A comprehensive AI-assisted software engineering framework.
 
-## Features
+[English](README.md) | [中文](README_CN.md)
 
-- **Knowledge Fusion System**: Sophisticated architecture for cross-domain intelligence
-- **Constraint Management**: Comprehensive validation across technical, security, and performance domains
-- **Product Knowledge Access**: Intelligent search and retrieval with relevance ranking
-- **Code Generation**: Generate code from natural language prompts
-- **Code Review & Validation**: Multi-layered code quality assurance system with comprehensive review mechanisms
-- **Requirements Management**: Create detailed requirement documents with conflict identification and resolution
-- **Architecture Design**: Generate and validate architectural solutions with best practices integration
-- **Debugging**: Help identify and solve coding issues
-- **Testing & Validation**: Comprehensive test generation with multiple test types and coverage analysis
-- **Multi-Component Platform Integration**: Integration with multiple LLM providers, MCP systems, and IDE plugins
-- **Process Discipline Control**: Configurable discipline levels with adjustable validation strictness
-- **Progress Monitoring**: Real-time tracking of development workflows
-- **Workflow Integration**: Seamless incorporation into development processes
-- **Interactive Mode**: Enhanced interactive session with context tracking
+---
 
-## Project Scope
+## What is DCAE?
 
-The DCAE framework represents a comprehensive AI-assisted software engineering platform with sophisticated knowledge fusion capabilities. The project successfully delivered 9 major epics:
+DCAE is an intelligent development assistant that helps you build better software faster. It combines AI-powered code generation with disciplined engineering practices to enhance your productivity and code quality.
 
-- **Epic 1**: Project Initialization & Setup - Established foundational project structure
-- **Epic 2**: Requirements Management - Implemented requirements gathering and management tools
-- **Epic 3**: Architecture Design & Planning - Generated and validated architectural solutions
-- **Epic 4**: Code Generation & Implementation - Created code structure generation tools
-- **Epic 5**: Code Review & Validation - Built comprehensive review mechanisms
-- **Epic 6**: Multi-Component Platform Integration - Integrated multiple LLM providers and systems
-- **Epic 7**: Process Discipline Control - Created configurable discipline levels
-- **Epic 8**: Testing & Validation - Generated comprehensive test cases and implemented various test types
-- **Epic 9**: Product Knowledge Integration - Fused development and product knowledge systems
+## Quick Start
 
-## Major Accomplishments
+```bash
+# Install dependencies
+pip install -e .
 
-- **Modular Architecture**: Clear component boundaries with standardized interfaces and data models
-- **Comprehensive Testing**: Extensive unit and integration test coverage with automated validation
-- **Knowledge Integration**: Successful implementation of cross-domain intelligence capabilities
-- **Scalability**: Architecture designed to support growth and addition of new features
-- **Quality Assurance**: Multi-layered validation and comprehensive documentation
-- **Performance**: Responsive operation despite sophisticated processing requirements
+# Initialize DCAE
+python dcae.py init
 
-## Installation and Setup
+# Start coding with AI assistance
+python dcae.py --help
+```
 
-1. Clone the repository:
+## Core Features
+
+### 🎯 Requirements Management
+- Generate detailed requirement documents from natural language descriptions
+- Identify conflicts and issues early in the development process
+- Export and share requirements with your team
+
+### 🏗️ Architecture Design
+- Generate architectural solutions based on your requirements
+- Review and validate architecture against best practices
+- Interactive modification and refinement
+
+### 💻 Code Generation
+- Generate code structure from specifications
+- Implement business logic automatically
+- Support for multiple technology stacks and languages
+
+### 🔍 Code Review
+- Automated code quality analysis
+- Issue identification and fix suggestions
+- Multi-layer validation system
+
+### 🧪 Testing & Documentation
+- Generate comprehensive test cases
+- Multiple test types support (unit, integration, etc.)
+- Automatic test documentation
+
+### 🧠 Knowledge Fusion
+- Cross-domain knowledge integration
+- Best practices recommendations
+- Project-specific constraint learning
+
+### ⚙️ Multi-LLM Support
+- Support for Qwen, GLM, GPT-4, Claude, and more
+- Intelligent model selection based on task complexity
+- Budget management and usage tracking
+
+### 📊 Process Discipline
+- Configurable discipline levels
+- Adjustable validation strictness
+- Compliance tracking
+
+## Project Structure
+
+```
+DCAE/
+├── src/                    # Source code
+│   └── dcae/
+│       ├── cli.py          # Command-line interface
+│       ├── knowledge_fusion/
+│       ├── product_knowledge/
+│       ├── task_management/
+│       └── ...
+├── tests/                  # Test suite
+├── docs/                   # Documentation
+├── examples/               # Example code
+├── templates/              # Project templates
+└── config/                 # Configuration files
+```
+
+## Installation
+
+### Prerequisites
+- Python 3.8 or higher
+- pip package manager
+- API key for your preferred LLM provider
+
+### Steps
+
+1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/xylgz1989/DCAE.git
    cd DCAE
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
-   pip install -r requirements.txt
+   pip install -e .
    ```
 
-3. Initialize DCAE:
+3. **Initialize configuration**
    ```bash
    python dcae.py init
    ```
 
-   This will guide you through the configuration process, including selecting an LLM provider and setting budget limits.
+4. **Configure your LLM provider**
+   - Select provider (Qwen, GLM, OpenAI, Claude, etc.)
+   - Enter API key
+   - Set budget limits (optional)
+
+## Usage Examples
+
+### Generate Requirements Document
+```bash
+python dcae.py req "Build a user authentication system with OAuth2 support"
+```
+
+### Generate Code
+```bash
+python dcae.py gen "Create a REST API endpoint for user registration"
+```
+
+### Review Code
+```bash
+python dcae.py review src/my_module.py
+```
+
+### Generate Tests
+```bash
+python dcae.py test-case src/my_module.py
+```
 
 ## Configuration
 
-The configuration wizard (`python dcae.py init`) will create a config file in your home directory (`~/.dcae/config.json`) with:
+DCAE stores configuration in `~/.dcae/config.json`:
 
-- Selected LLM provider (Qwen, GLM, OpenAI, etc.)
-- API key
-- Daily/monthly usage limits
-- Model preference settings
-- Fallback model for budget management
+```json
+{
+  "provider": "qwen",
+  "api_key": "your-api-key",
+  "model": "qwen-plus",
+  "daily_limit": 100,
+  "monthly_limit": 1000
+}
+```
 
-## Budget Management
+## Supported LLM Providers
 
-DCAE includes built-in budget tracking to help manage API costs:
+| Provider | Models | Region |
+|----------|--------|--------|
+| Qwen | Turbo, Plus, Coder Plus, Max | Global/China |
+| GLM | GLM-4 | China |
+| OpenAI | GPT-4o | Global |
+| Anthropic | Claude 3.5 Sonnet | Global |
 
-- Configurable daily and monthly limits
-- Token-based or monetary-based tracking
-- Warning when approaching limits (80% threshold)
-- Automatic model fallback when budgets are tight
+## Documentation
 
-## Supported Models
-
-The system supports various models based on your provider:
-
-- Qwen series (Turbo, Plus, Coder Plus, Max)
-- GLM-4
-- GPT-4o
-- Claude 3.5 Sonnet
-
-Model selection is automated based on task complexity and budget constraints.
+- [Best Practices Guide](docs/best_practices.md)
+- [Constraint Handling](docs/constraint_handling_guide.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Contributing](CONTRIBUTING.md)
 
 ## Development
 
-The interactive mode was developed using Test-Driven Development with comprehensive test coverage in the `tests/` directory.
-
-To run tests:
+### Running Tests
 ```bash
 python -m pytest tests/ -v
 ```
 
+### Building Package
+```bash
+python setup.py build
+```
+
 ## License
 
-This project is licensed under the MIT License.
+MIT License - See [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for guidelines.
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/xylgz1989/DCAE/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/xylgz1989/DCAE/discussions)
+
+## Acknowledgments
+
+Built using the BMAD methodology for systematic software engineering.
+
+---
+
+**Version**: 1.0.0 | **Status**: Stable
