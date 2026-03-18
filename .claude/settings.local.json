@@ -41,7 +41,12 @@
       "Bash(move:*)",
       "Bash(PYTHONPATH=. python:*)",
       "Bash(bmad-bmm-retrospective:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(curl:*)",
+      "Bash(gh repo:*)",
+      "Bash(ssh:*)",
+      "Bash(git remote:*)",
+      "Bash(git show-ref:*)"
     ]
   }
 }
